@@ -1,0 +1,7 @@
+composer.lock
+grammar/hacklang.y
+grammar/parser.template
+grammar/rebuildParser.php
+grammar/tokens.template
+grammar/tokens.y
+vendor/

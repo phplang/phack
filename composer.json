@@ -1,0 +1,42 @@
+{
+  "name": "phplang/phack",
+  "description": "HackLang parser for PHP",
+  "version": "1.0.0-dev",
+  "type": "library",
+  "keywords": [
+    "hacklang",
+    "parser"
+  ],
+  "homepage": "https://github.com/phplang/phack",
+  "license": "BSD",
+  "authors": [
+    {
+      "name": "Sara Golemon",
+      "email": "pollita@php.net",
+      "homepage": "https://twitter.com/SaraMG",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "nikic/PHP-Parser": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "PhpLang\\Phack\\": "lib/"
+    },
+    "files": [
+      "lib/autoload.php"
+    ]
+  },
+  "require-dev": {
+    "phpunit/phpunit": "*"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "PhpLang\\Phack\\Test\\": "tests/"
+    }
+  },
+  "bin": [
+    "phack"
+  ]
+}
