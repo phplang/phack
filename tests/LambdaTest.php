@@ -17,6 +17,15 @@ class PhackLambdaTest extends PHPUnit_Framework_TestCase {
             '$l = $x ==> strlen($x); var_dump($l("hi"));' =>
                 '$l = function ($x) { return strlen($x); };'.PHP_EOL.
                 'var_dump($l("hi"));',
+            '$l = ($x) ==> strlen($x); var_dump($l("hi"));' =>
+                '$l = function ($x) { return strlen($x); };'.PHP_EOL.
+                'var_dump($l("hi"));',
+            '$hyp = ($a, $b) ==> sqrt($a*$a) + sqrt($b*$b); var_dump($hyp(3,4));' =>
+                '$hyp = function ($a, $b) { return sqrt($a * $a) + sqrt($b * $b); };'.PHP_EOL.
+                'var_dump($hyp(3, 4));',
+            '$l = (string $x) ==> strlen($x); var_dump($l("hi"));' =>
+                '$l = function ($x) { return strlen($x); };'.PHP_EOL.
+                'var_dump($l("hi"));',
         ));
     }
 

@@ -46,8 +46,8 @@ class_statement:
 ;
 
 hack_lambda:
-	  '(' ')' T_LAMBDA_ARROW expr           { $$ = PhackExpr\Lambda[init(), $4]; }
-	| T_VARIABLE T_LAMBDA_ARROW expr        { $$ = PhackExpr\Lambda[init(Expr\Variable[parseVar($1)]), $3]; }
+	  T_LAMBDA_OP parameter_list T_LAMBDA_CP T_LAMBDA_ARROW expr { $$ = PhackExpr\Lambda[$2, $5]; }
+	| T_VARIABLE T_LAMBDA_ARROW expr { $$ = PhackExpr\Lambda[init(Node\Param[parseVar($1), null]), $3]; }
 ;
 
 expr:

@@ -5,12 +5,16 @@ use PhpLang\Phack\PhpParser\Parser\Tokens;
 
 class HackLang extends \PhpParser\Lexer\Emulative {
     const T_LAMBDA_ARROW = 2000;
-    const T_ENUM = 2001;
+    const T_LAMBDA_OP = 2001;
+    const T_LAMBDA_CP = 2002;
+    const T_ENUM = 2003;
 
     public function __construct(array $options = array()) {
         parent::__construct($options);
 
         $this->tokenMap[self::T_LAMBDA_ARROW] = Tokens::T_LAMBDA_ARROW;
+        $this->tokenMap[self::T_LAMBDA_OP]    = Tokens::T_LAMBDA_OP;
+        $this->tokenMap[self::T_LAMBDA_CP]    = Tokens::T_LAMBDA_CP;
         $this->tokenMap[self::T_ENUM]         = Tokens::T_ENUM;
     }
 
@@ -103,6 +107,33 @@ class HackLang extends \PhpParser\Lexer\Emulative {
         return false;
     }
 
+    /**
+     * Scans back from the current T_LAMBDA_ARROW token to translate
+     * any enclosing parameter list parentheses into T_LAMBA_OP/CP to
+     * avoid a parser shift/reduce conflict
+     */
+    private function fixupLambdaParens($pos) {
+        assert(isset($this->tokens[$pos][2]));
+        for ($i = $pos - 1; ($this->tokens[$i][0]??null) === T_WHITESPACE; --$i);
+        if (!isset($this->tokens[$i])) return;
+        if ($this->tokens[$i] !== ')') return;
+        $cp = $i;
+        $nest = 0;
+        $line = $this->tokens[$pos][2];
+        for (--$i; isset($this->tokens[$i]); --$i) {
+            $line = $this->tokens[$i][2] ?: $line;
+            if ($this->tokens[$i] === ')') { ++$nest; continue; }
+            if ($this->tokens[$i] === '(') {
+                if (!$nest--) {
+                    /* Found matching paren */
+                    $this->tokens[$i] = array(self::T_LAMBDA_OP, '(', $line);
+                    $this->tokens[$cp] = array(self::T_LAMBDA_CP, ')', $this->tokens[$pos][2]);
+                    return;
+                }
+            }
+        }
+    }
+
     protected function postprocessTokens() {
         // Copypasta from base Lexer\Emulative
         // Deal with our rewrites first, since parent will panic on unknown rewrite
@@ -116,15 +147,12 @@ class HackLang extends \PhpParser\Lexer\Emulative {
                 && T_STRING === $this->tokens[$i + 1][0]
                 && preg_match('(^__EMU__([A-Z]++)__(?:([A-Za-z0-9]++)__)?$)', $this->tokens[$i + 1][1], $matches)
             ) {
-                $replace = null;
                 if ('LAMBDAARROW' === $matches[1]) {
-                    $replace = array(
+                    array_splice($this->tokens, $i, 3, array(
                         array(self::T_LAMBDA_ARROW, '==>', $this->tokens[$i + 1][2]),
-                    );
-                }
-                if (is_array($replace)) {
-                    array_splice($this->tokens, $i, 3, $replace);
-                    $c -= 3 - count($replace);
+                    ));
+                    $c -= 2;
+                    $this->fixupLambdaParens($i);
                 }
 
             // second, change `enum` strings to T_ENUM
