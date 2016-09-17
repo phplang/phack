@@ -1,6 +1,6 @@
 hack_generics_covariant_placeholder:
-	  T_STRING { $$ = null; }
-	| T_STRING T_AS T_STRING { $$ = null; }
+	  type { $$ = null; }
+	| type T_AS name { $$ = null; }
 ;
 
 hack_generics_placeholder_list:
@@ -20,6 +20,11 @@ hack_non_empty_enum_list:
 hack_enum_list:
 	  /* empty */ { init(); }
 	| hack_non_empty_enum_list { $$ = $1; }
+;
+
+type:
+	  name '<' hack_generics_placeholder_list '>' { $$ = $this->handleScalarTypes($1); }
+	| T_ARRAY '<' hack_generics_placeholder_list '>' { $$ = 'array'; }
 ;
 
 class_declaration_statement:
