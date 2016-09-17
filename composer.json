@@ -1,7 +1,6 @@
 {
   "name": "phplang/phack",
   "description": "HackLang parser for PHP",
-  "version": "1.0.0-dev",
   "type": "library",
   "keywords": [
     "hacklang",
