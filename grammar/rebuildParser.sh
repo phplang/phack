@@ -20,6 +20,7 @@ $SED -e 's/%%//g' -e '/%tokens/a %%' -e '$r hack-extras.y' -e '$a %%' \
 	> hacklang.y
 
 $SED -e 's/namespace PhpParser\\Parser;/namespace PhpLang\\Phack\\PhpParser\\Parser;/g' \
+	-e '/^namespace/a use PhpLang\\Phack\\PhpParser\\Node as PhackNode;' \
 	-e '/^namespace/a use PhpLang\\Phack\\PhpParser\\Node\\Expr as PhackExpr;' \
 	-e '/^namespace/a use PhpLang\\Phack\\PhpParser\\Node\\Stmt as PhackStmt;' \
 	-e '/the grammar file/d' -e '/the skeleton file/d' \

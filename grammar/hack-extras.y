@@ -8,6 +8,15 @@ hack_generics_placeholder_list:
 	| hack_generics_placeholder_list ',' hack_generics_covariant_placeholder
 ;
 
+hack_non_optional_generics_placeholder_list:
+	  '<' hack_generics_placeholder_list '>' { $$ = $2; }
+;
+
+hack_optional_generics_placeholder_list:
+	  /* empty */ { $$ = null; }
+	| '<' hack_generics_placeholder_list '>' { $$ = $2; }
+;
+
 hack_enum:
 	  T_STRING '=' scalar ';' { $$ = Node\Const_[$1, $3]; }
 ;
@@ -20,6 +29,21 @@ hack_non_empty_enum_list:
 hack_enum_list:
 	  /* empty */ { init(); }
 	| hack_non_empty_enum_list { $$ = $1; }
+;
+
+hack_user_attribute:
+	  name	{ $$ = PhackNode\UserAttribute[$1]; }
+	| name '(' array_pair_list ')' { $$ = PhackNode\UserAttribute[$1, $3]; }
+;
+
+hack_user_attributes:
+	  hack_user_attribute { $$ = init($1); }
+	| hack_user_attributes ',' hack_user_attribute { $$ = push($1, $3); }
+;
+
+hack_user_attributes_list:
+	  T_SL hack_user_attributes T_SR	{ $$ = $1; }
+	| hack_user_attributes_list T_SL hack_user_attributes T_SR { $$ = $1 + $3; }
 ;
 
 type:
@@ -36,9 +60,14 @@ class_declaration_statement:
 ;
 
 function_declaration_statement:
-	T_FUNCTION optional_ref T_STRING '<' hack_generics_placeholder_list '>'
-	'(' parameter_list ')' optional_return_type '{' inner_statement_list '}'
-	      { $$ = Stmt\Function_[$3, ['byRef' => $2, 'params' => $8, 'returnType' => $10, 'stmts' => $12]]; }
+	  T_FUNCTION optional_ref T_STRING hack_non_optional_generics_placeholder_list
+	  '(' parameter_list ')' optional_return_type '{' inner_statement_list '}'
+	      { $$ = Stmt\Function_[$3, ['byRef' => $2, 'params' => $6, 'returnType' => $8, 'stmts' => $10]]; }
+	| hack_user_attributes_list
+	  T_FUNCTION optional_ref T_STRING hack_optional_generics_placeholder_list
+	  '(' parameter_list ')' optional_return_type '{' inner_statement_list '}'
+	      { $$ = Stmt\Function_[$4, ['byRef' => $3, 'params' => $7, 'returnType' => $9,
+	                                 'stmts' => $11, 'user_attributes' => $1]]; }
 ;
 
 class_statement:
