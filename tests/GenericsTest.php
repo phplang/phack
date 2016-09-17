@@ -45,6 +45,10 @@ class PhackGenericsTest extends PHPUnit_Framework_TestCase {
         $this->assertTranspiles(array(
             'function f(ConstMap<string, ConstSet<int> > $sets) {}' =>
                 "function f(\$sets)\n{\n}",
+            'function f(ConstMap<string, ConstSet<int>> $sets) {}' =>
+                "function f(\$sets)\n{\n}",
+            'function f(ConstVector<ConstMap<ConstSet<int>, string>> $sets) {}' =>
+                "function f(\$sets)\n{\n}",
         ));
     }
 }

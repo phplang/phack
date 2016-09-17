@@ -80,6 +80,29 @@ class HackLang extends \PhpParser\Lexer\Emulative {
         return parent::preprocessCode($code);
     }
 
+    /**
+     * Scans back from the current token position to try to find
+     * a pattern like:  < (T_ARRAY|T_STRING|T_AS)* >>
+     * Which indicated we're probably dealing with nested generics.
+     * Otherwise we have a single shift-right
+     */
+    private function isProbableNestedGenericExpressionEnd(array $tokens, $pos) {
+        for ($i = $pos - 1; $i > 0; --$i) {
+            if (!isset($tokens[$i])) return false;
+            $token = $tokens[$i];
+            if (($token === '<') || ($token === '>')) return true;
+            if ($token === ',') continue;
+            if (!is_array($token)) return false;
+            if (   (T_ARRAY      !== $token[0])
+                && (T_STRING     !== $token[0])
+                && (T_AS         !== $token[0])
+                && (T_WHITESPACE !== $token[0])) return false;
+        }
+
+        // If we exit the for loop, it's because we ran out of tokens scanning back
+        return false;
+    }
+
     protected function postprocessTokens() {
         // Copypasta from base Lexer\Emulative
         // Deal with our rewrites first, since parent will panic on unknown rewrite
@@ -110,6 +133,14 @@ class HackLang extends \PhpParser\Lexer\Emulative {
                 && !strcasecmp('enum', $this->tokens[$i][1])
             ) {
                 $this->tokens[$i][0] = self::T_ENUM;
+
+            // Translate >> to > and >
+            // to allow nested generics
+            } elseif (is_array($this->tokens[$i])
+                && ($this->tokens[$i][0] === T_SR)
+                && self::isProbableNestedGenericExpressionEnd($this->tokens, $i)) {
+                array_splice($this->tokens, $i, 1, array('>', '>'));
+                ++$c;
 
             // finally, replace a short open tag followed by `hh`
             // with a long open tag.
