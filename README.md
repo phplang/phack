@@ -23,7 +23,7 @@ Phack extends [PHP-Parser](https://www.github.com/nikic/PHP-Parser) by amending 
 | [Pipe Op](https://docs.hhvm.com/hack/operators/pipe-operator) | TBD | |
 | [Type Aliasing](https://docs.hhvm.com/hack/type-aliases) | TBD | |
 | [Prop/Const Typing](https://docs.hhvm.com/hack/types) | TBD | |
-| [Callable typing](https://docs.hhvm.com/hack/types) | TBD | |
+| [Callable typing](https://docs.hhvm.com/hack/types) | Alpha | Props: Yes, Consts: No |
 | [User Attributes](https://docs.hhvm.com/hack/attributes) | Alpha | UA erasure, need to preserve somewhere for reflection. |
 | [Shapes](https://docs.hhvm.com/hack/shapes) | TBD | |
 | [Collections](https://docs.hhvm.com/hack/collections) | TBD | Static initialization is... complicated... |

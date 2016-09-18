@@ -77,7 +77,9 @@ class_declaration_statement:
 ;
 
 class_statement:
-	  method_modifiers T_FUNCTION optional_ref identifier hack_non_optional_generics_placeholder_list
+	  variable_modifiers type property_declaration_list ';' { $$ = Stmt\Property[$1, $3]; }
+
+	| method_modifiers T_FUNCTION optional_ref identifier hack_non_optional_generics_placeholder_list
       '(' parameter_list ')' optional_return_type method_body
           { $$ = Stmt\ClassMethod[$4, ['type' => $1, 'byRef' => $3, 'params' => $7,
                                        'returnType' => $9, 'stmts' => $10]]; }
@@ -97,10 +99,6 @@ function_declaration_statement:
 	  '(' parameter_list ')' optional_return_type '{' inner_statement_list '}'
 	      { $$ = Stmt\Function_[$4, ['byRef' => $3, 'params' => $7, 'returnType' => $9,
 	                                 'stmts' => $11, 'user_attributes' => $1]]; }
-;
-
-class_statement:
-	  variable_modifiers T_STRING property_declaration_list ';' { $$ = Stmt\Property[$1, $3]; }
 ;
 
 expr:
