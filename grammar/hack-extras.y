@@ -46,6 +46,16 @@ hack_user_attributes_list:
 	| hack_user_attributes_list T_SL hack_user_attributes T_SR { $$ = $1 + $3; }
 ;
 
+hack_lambda_arguments:
+	  T_VARIABLE { $$ = init(Node\Param[parseVar($1), null]); }
+	| T_LAMBDA_OP parameter_list T_LAMBDA_CP { $$ = $2; }
+;
+
+hack_lambda:
+	  hack_lambda_arguments T_LAMBDA_ARROW expr { $$ = PhackExpr\Lambda[$1, init(Stmt\Return_[$3])]; }
+	| hack_lambda_arguments T_LAMBDA_ARROW '{' inner_statement_list '}' { $$ = PhackExpr\Lambda[$1, $4]; }
+;
+
 type:
 	  name '<' hack_generics_placeholder_list '>' { $$ = $this->handleScalarTypes($1); }
 	| T_ARRAY '<' hack_generics_placeholder_list '>' { $$ = 'array'; }
@@ -72,11 +82,6 @@ function_declaration_statement:
 
 class_statement:
 	  variable_modifiers T_STRING property_declaration_list ';' { $$ = Stmt\Property[$1, $3]; }
-;
-
-hack_lambda:
-	  T_LAMBDA_OP parameter_list T_LAMBDA_CP T_LAMBDA_ARROW expr { $$ = PhackExpr\Lambda[$2, $5]; }
-	| T_VARIABLE T_LAMBDA_ARROW expr { $$ = PhackExpr\Lambda[init(Node\Param[parseVar($1), null]), $3]; }
 ;
 
 expr:

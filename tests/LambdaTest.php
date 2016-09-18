@@ -37,4 +37,16 @@ class PhackLambdaTest extends PHPUnit_Framework_TestCase {
                 'var_dump($l());',
         ));
     }
+
+    public function testMultiline() {
+        $this->assertTranspiles(array(
+            '$a = "Hello"; $l = () ==> { $b = $a; return strlen($b); }; var_dump($l());' =>
+                '$a = "Hello";'.PHP_EOL.
+                '$l = function () use ($a) {'.PHP_EOL.
+                '    $b = $a;'.PHP_EOL.
+                '    return strlen($b);'.PHP_EOL.
+                '};'.PHP_EOL.
+                'var_dump($l());',
+        ));
+    }
 }

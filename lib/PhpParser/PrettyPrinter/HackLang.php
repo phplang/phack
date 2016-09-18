@@ -68,7 +68,12 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         $parentScope = $this->lambdaScope[count($this->lambdaScope) - 1];
 
         array_push($this->lambdaScope, array());
-        $impl = $this->p($lambda->closure);
+        if ((count($lambda->stmts) === 1)
+             && ($lambda->stmts[0] instanceof pStmt\Return_)) {
+            $impl = ' { ' . $this->p($lambda->stmts[0]) . ' }';
+        } else {
+            $impl = ' {' . $this->pStmts($lambda->stmts) . "\n}";
+        }
         $childScope = array_pop($this->lambdaScope);
 
         $use = array();
@@ -82,7 +87,7 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         if (!empty($use)) {
             $ret .= ' use ($' . implode(', $', $use) . ')';
         }
-        return $ret . " { return $impl; }";
+        return $ret . $impl;
     }
 
     public function pStmt_Function(pStmt\Function_ $func) {

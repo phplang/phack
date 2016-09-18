@@ -7,8 +7,8 @@ class Lambda extends \PhpParser\Node\Expr {
 
     /** @var array Parameters */
     public $params;
-    /** @var Expr Closure */
-    public $closure;
+    /** @var Stmt[] Closure statements */
+    public $stmts;
 
     /**
      * Constructs a Lambda node.
@@ -17,13 +17,13 @@ class Lambda extends \PhpParser\Node\Expr {
      * @param Expr  $expr       Expression
      * @param array $attributes Additional attributes
      */
-    public function __construct(array $params, \PhpParser\Node\Expr $closure, array $attributes = array()) {
+    public function __construct(array $params, array $stmts, array $attributes = array()) {
         parent::__construct($attributes);
         $this->params = $params;
-        $this->closure = $closure;
+        $this->stmts = $stmts;
     }
 
     public function getSubNodeNames() {
-        return array('params', 'closure');
+        return array('params', 'stmts');
     }
 }
