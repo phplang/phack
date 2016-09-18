@@ -15,6 +15,8 @@ class PhackGenericsTest extends PHPUnit_Framework_TestCase {
     public function testClassGenerics() {
         $this->assertTranspiles(array(
             'class Foo<T> {}' => "class Foo\n{\n}",
+            'class Foo<T> { public T $data; }' =>
+                "class Foo\n{\n    public \$data;\n}",
             'class Foo<A, B as Bar> {}' => "class Foo\n{\n}",
             'class Foo<T> { public function bar(): T {}}' =>
                 "class Foo\n{\n    public function bar()\n    {\n    }\n}",
@@ -25,8 +27,13 @@ class PhackGenericsTest extends PHPUnit_Framework_TestCase {
         $this->assertTranspiles(array(
             'function foo<Tk,Tv>(Tk $key, Tv $val): Tv {}' =>
                 "function foo(\$key, \$val)\n{\n}",
-            'class Foo<T> { public T $data; }' =>
-                "class Foo\n{\n    public \$data;\n}",
+        ));
+    }
+
+    public function testMethodGenerics() {
+        $this->assertTranspiles(array(
+            'class C { function foo<Tk,Tv>(Tk $key, Tv $val): Tv {}}' =>
+                "class C\n{\n    function foo(\$key, \$val)\n    {\n    }\n}",
         ));
     }
 

@@ -62,11 +62,30 @@ type:
 ;
 
 class_declaration_statement:
-	  class_entry_type T_STRING '<' hack_generics_placeholder_list '>'
-	  extends_from implements_list'{' class_statement_list '}'
-	      { $$ = Stmt\Class_[$2, ['type' => $1, 'extends' => $6, 'implements' => $7, 'stmts' => $9]]; }
+	  class_entry_type T_STRING hack_non_optional_generics_placeholder_list
+	  extends_from implements_list '{' class_statement_list '}'
+	      { $$ = Stmt\Class_[$2, ['type' => $1, 'extends' => $4, 'implements' => $5, 'stmts' => $7]]; }
+	| hack_user_attributes_list
+	  class_entry_type T_STRING hack_optional_generics_placeholder_list
+	  extends_from implements_list '{' class_statement_list '}'
+	      { $$ = Stmt\Class_[$3, ['type' => $2, 'extends' => $5, 'implements' => $6, 'stmts' => $8]]; }
+
+	| hack_user_attributes_list T_ENUM T_STRING ':' T_STRING '{' hack_enum_list '}'
+	      { $$ = PhackStmt\Enum[$3, $5, $7]; }
 	| T_ENUM T_STRING ':' T_STRING '{' hack_enum_list '}'
 	      { $$ = PhackStmt\Enum[$2, $4, $6]; }
+;
+
+class_statement:
+	  method_modifiers T_FUNCTION optional_ref identifier hack_non_optional_generics_placeholder_list
+      '(' parameter_list ')' optional_return_type method_body
+          { $$ = Stmt\ClassMethod[$4, ['type' => $1, 'byRef' => $3, 'params' => $7,
+                                       'returnType' => $9, 'stmts' => $10]]; }
+	| hack_user_attributes_list
+	  method_modifiers T_FUNCTION optional_ref identifier hack_non_optional_generics_placeholder_list
+      '(' parameter_list ')' optional_return_type method_body
+          { $$ = Stmt\ClassMethod[$5, ['type' => $2, 'byRef' => $4, 'params' => $8,
+                                       'returnType' => $10, 'stmts' => $11]]; }
 ;
 
 function_declaration_statement:

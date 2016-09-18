@@ -11,10 +11,17 @@ class PhackUserAttributesTest extends PHPUnit_Framework_TestCase {
        }
     }
 
-    public function testParseHackLang() {
+    public function testUAFunctions() {
         $this->assertTranspiles(array(
             '<<Foo>>function foo() {}' =>
                 "function foo()\n{\n}",
+        ));
+    }
+
+    public function testUAClasses() {
+        $this->assertTranspiles(array(
+            '<<Foo>>class Bar {}' =>
+                "class Bar\n{\n}",
         ));
     }
 }
