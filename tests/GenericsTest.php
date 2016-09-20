@@ -58,4 +58,23 @@ class PhackGenericsTest extends PHPUnit_Framework_TestCase {
                 "function f(\$sets)\n{\n}",
         ));
     }
+
+    public function testParseSubtypes() {
+        $tree = Phack\compileString('<?hh function f(X<Y> $z, A\\B<C\\D as E\\F> $g) {}');
+
+        $param = $tree[0]->params[0];
+        $this->assertInstanceOf(Phack\PhpParser\Node\GenericsType::class, $param->type);
+        $this->assertInstanceOf(\PhpParser\Node\Name::class, $param->type->basetype);
+        $this->assertEquals('X', implode('\\', $param->type->basetype->parts));
+        $this->assertInstanceOf(\PhpParser\Node\Name::class, $param->type->subtypes[0]);
+        $this->assertEquals('Y', implode('\\', $param->type->subtypes[0]->parts));
+
+        $param = $tree[0]->params[1];
+        $this->assertInstanceOf(Phack\PhpParser\Node\GenericsType::class, $param->type);
+        $this->assertInstanceOf(\PhpParser\Node\Name::class, $param->type->basetype);
+        $this->assertEquals('A\\B', implode('\\', $param->type->basetype->parts));
+        $this->assertInstanceOf(Phack\PhpParser\Node\GenericsTypeAs::class, $param->type->subtypes[0]);
+        $this->assertEquals('C\\D', implode('\\', $param->type->subtypes[0]->name->parts));
+        $this->assertEquals('E\\F', implode('\\', $param->type->subtypes[0]->as->parts));
+    }
 }

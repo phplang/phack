@@ -1,11 +1,11 @@
 hack_generics_covariant_placeholder:
-	  type { $$ = null; }
-	| type T_AS name { $$ = null; }
+	  type { $$ = $1; }
+	| type T_AS type { $$ = PhackNode\GenericsTypeAs[$1, $3]; }
 ;
 
 hack_generics_placeholder_list:
-	  hack_generics_covariant_placeholder
-	| hack_generics_placeholder_list ',' hack_generics_covariant_placeholder
+	  hack_generics_covariant_placeholder { $$ = init($1); }
+	| hack_generics_placeholder_list ',' hack_generics_covariant_placeholder { $$ = push($1, $3); }
 ;
 
 hack_non_optional_generics_placeholder_list:
@@ -57,18 +57,22 @@ hack_lambda:
 ;
 
 type:
-	  name '<' hack_generics_placeholder_list '>' { $$ = $this->handleScalarTypes($1); }
-	| T_ARRAY '<' hack_generics_placeholder_list '>' { $$ = 'array'; }
+	  name '<' hack_generics_placeholder_list '>' { $$ = PhackNode\GenericsType[$1, $3]; }
+	| T_ARRAY '<' hack_generics_placeholder_list '>' { $$ = PhackNode\GenericsType['array', $3]; }
 ;
 
 class_declaration_statement:
 	  class_entry_type T_STRING hack_non_optional_generics_placeholder_list
 	  extends_from implements_list '{' class_statement_list '}'
-	      { $$ = Stmt\Class_[$2, ['type' => $1, 'extends' => $4, 'implements' => $5, 'stmts' => $7]]; }
+	      { $$ = PhackStmt\Class_[$2, ['type' => $1, 'extends' => $4,
+	                                   'implements' => $5, 'stmts' => $7,
+	                                   'generics' => $3]]; }
 	| hack_user_attributes_list
 	  class_entry_type T_STRING hack_optional_generics_placeholder_list
 	  extends_from implements_list '{' class_statement_list '}'
-	      { $$ = Stmt\Class_[$3, ['type' => $2, 'extends' => $5, 'implements' => $6, 'stmts' => $8]]; }
+	      { $$ = PhackStmt\Class_[$3, ['type' => $2, 'extends' => $5,
+	                                   'implements' => $6, 'stmts' => $8,
+	                                   'generics' => $4]]; }
 
 	| hack_user_attributes_list T_ENUM T_STRING ':' T_STRING '{' hack_enum_list '}'
 	      { $$ = PhackStmt\Enum[$3, $5, $7]; }
@@ -80,25 +84,30 @@ class_statement:
 	  variable_modifiers type property_declaration_list ';' { $$ = Stmt\Property[$1, $3]; }
 
 	| method_modifiers T_FUNCTION optional_ref identifier hack_non_optional_generics_placeholder_list
-      '(' parameter_list ')' optional_return_type method_body
-          { $$ = Stmt\ClassMethod[$4, ['type' => $1, 'byRef' => $3, 'params' => $7,
-                                       'returnType' => $9, 'stmts' => $10]]; }
+	  '(' parameter_list ')' optional_return_type method_body
+	      { $$ = PhackStmt\ClassMethod[$4, ['type' => $1, 'byRef' => $3, 'params' => $7,
+	                                        'returnType' => $9, 'stmts' => $10,
+	                                        'generics' => $5]]; }
 	| hack_user_attributes_list
 	  method_modifiers T_FUNCTION optional_ref identifier hack_non_optional_generics_placeholder_list
-      '(' parameter_list ')' optional_return_type method_body
-          { $$ = Stmt\ClassMethod[$5, ['type' => $2, 'byRef' => $4, 'params' => $8,
-                                       'returnType' => $10, 'stmts' => $11]]; }
+	  '(' parameter_list ')' optional_return_type method_body
+	      { $$ = PhackStmt\ClassMethod[$5, ['type' => $2, 'byRef' => $4, 'params' => $8,
+	                                        'returnType' => $10, 'stmts' => $11,
+	                                        'generics' => $6]]; }
 ;
 
 function_declaration_statement:
 	  T_FUNCTION optional_ref T_STRING hack_non_optional_generics_placeholder_list
 	  '(' parameter_list ')' optional_return_type '{' inner_statement_list '}'
-	      { $$ = Stmt\Function_[$3, ['byRef' => $2, 'params' => $6, 'returnType' => $8, 'stmts' => $10]]; }
+	      { $$ = PhackStmt\Function_[$3, ['byRef' => $2, 'params' => $6,
+	                                      'returnType' => $8, 'stmts' => $10,
+	                                      'generics' => $4]]; }
 	| hack_user_attributes_list
 	  T_FUNCTION optional_ref T_STRING hack_optional_generics_placeholder_list
 	  '(' parameter_list ')' optional_return_type '{' inner_statement_list '}'
-	      { $$ = Stmt\Function_[$4, ['byRef' => $3, 'params' => $7, 'returnType' => $9,
-	                                 'stmts' => $11, 'user_attributes' => $1]]; }
+	      { $$ = PhackStmt\Function_[$4, ['byRef' => $3, 'params' => $7, 'returnType' => $9,
+	                                      'stmts' => $11, 'user_attributes' => $1,
+	                                      'generics' => $5]]; }
 ;
 
 expr:
