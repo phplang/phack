@@ -20,7 +20,7 @@ use \PhpParser\Node\Stmt as pStmt;
  * 2) Transform short lambda `==>` to a standard closure
  *   - Track variables in layered scopes to auto-populate `use` clause
  * 3) Transform `Enum` definitions into traditional classes
- *   - usePhpLang\Phack\Lib\EnumMethods
+ *   - use PhpLang\Phack\Lib\EnumMethods
  *   - Enum values as consts
  *   - Set privaye props mirroring enums for quick reflection
  */
@@ -109,36 +109,50 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         return $ret;
     }
 
+    /**
+     * Repurpose pStmt_Class to render the Enum for PHP
+     * Marshal the values into three replicated structures.
+     * 1) Actual const values for Enum::ELEMENT
+     * 2) private $names array for value to name reverse mapping/reflection
+     * 3) private $values array for forward mapping/reflection
+     */
     public function pStmt_Enum(Stmt\Enum $enum) {
         // Triplicate the const values
         // First as const statements for Foo::BAR access
         // Second in a private prop for getValues()
         // Third as another private prop for assert/assertAll/coerce/isValid/getNames
-        $consts = array();
-        foreach ($enum->stmts as $stmt) {
-            if ($stmt instanceof pStmt\Const_) {
-                $consts += $stmt->consts;
-            }
+
+        $names = $values = array();
+        foreach ($enum->values as $const) {
+            $name = new pScalar\String_($const->name, array('kind'=> pScalar\String_::KIND_SINGLE_QUOTED));
+            $names[]  = new pExpr\ArrayItem($name, $const->value);
+            $values[] = new pExpr\ArrayItem($const->value, $name);
         }
-        $orig_stmts = $enum->stmts;
-        if ($consts) {
-            $names = $values = array();
-            foreach ($consts as $const) {
-                $name = new pScalar\String_($const->name, array('kind'=> pScalar\String_::KIND_SINGLE_QUOTED));
-                $names[]  = new pExpr\ArrayItem($name, $const->value);
-                $values[] = new pExpr\ArrayItem($const->value, $name);
-            }
-            $enum->stmts[] = new pStmt\Property(pStmt\Class_::MODIFIER_PRIVATE | pStmt\Class_::MODIFIER_STATIC, array(
+
+        $stmts = array(
+            new pStmt\Use_(array(
+                new pStmt\UseUse(new pNode\Name('\PhpLang\Phack\Lib\EnumMethods')),
+            )),
+            new pStmt\Property(pStmt\Class_::MODIFIER_PRIVATE |
+                               pStmt\Class_::MODIFIER_STATIC, array(
                 new pStmt\PropertyProperty('names', new pExpr\Array_($names)),
                 new pStmt\PropertyProperty('values', new pExpr\Array_($values)),
-            ));
-            $enum->stmts[] = new pStmt\Use_(array(
-                new pStmt\UseUse(new pNode\Name('\PhpLang\Phack\Lib\EnumMethods')),
-            ));
+            )),
+        );
+
+        if ($enum->values) {
+            $stmts[] = new pStmt\Const_($enum->values);
         }
-        $ret = $this->pStmt_Class($enum);
-        $enum->stmts = $orig_stmts;
-        return $ret;
+
+        $cls = new pStmt\Class_(
+            $enum->name,
+            array(
+                'type'  => pStmt\Class_::MODIFIER_ABSTRACT,
+                'stmts' => $stmts,
+            )
+        );
+
+        return $this->pStmt_Class($cls);
     }
 
     public function pStmt_ClassMethod(pStmt\ClassMethod $func) {
