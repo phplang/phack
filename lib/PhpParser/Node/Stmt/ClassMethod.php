@@ -9,6 +9,9 @@ class ClassMethod extends \PhpParser\Node\Stmt\ClassMethod
     /** @var typename[] Generics typename */
     public $generics;
 
+    /** @var UserAttribute[] HackLang user attributes */
+    public $user_attributes;
+
     /**
      * Constructs a class method node.
      *
@@ -20,14 +23,18 @@ class ClassMethod extends \PhpParser\Node\Stmt\ClassMethod
      *                                'returnType' => null           : Return type
      *                                'stmts'      => array()        : Statements
      *                                'generics'   => array()        : Typenames
+     *                                'user_attributes' => UserAttribites[]: User Attributes
+     * @param array       $userAttributes User Attributes
      * @param array       $attributes Additional attributes
      */
     public function __construct($name, array $subNodes = array(), array $attributes = array()) {
         parent::__construct($name, $subNodes, $attributes);
         $this->generics = isset($subNodes['generics']) ? $subNodes['generics'] : array();
+        $this->user_attributes = isset($subNodes['user_attributes'])
+                                     ? $subNodes['user_attributes'] : array();
     }
 
     public function getSubNodeNames() {
-        return parent::getSubNodeNames() + array('generics');
+        return parent::getSubNodeNames() + array('generics', 'user_attributes');
     }
 }

@@ -32,7 +32,7 @@ hack_enum_list:
 ;
 
 hack_user_attribute:
-	  name	{ $$ = PhackNode\UserAttribute[$1]; }
+	  name	{ $$ = PhackNode\UserAttribute[$1, init()]; }
 	| name '(' array_pair_list ')' { $$ = PhackNode\UserAttribute[$1, $3]; }
 ;
 
@@ -42,8 +42,8 @@ hack_user_attributes:
 ;
 
 hack_user_attributes_list:
-	  T_SL hack_user_attributes T_SR	{ $$ = $1; }
-	| hack_user_attributes_list T_SL hack_user_attributes T_SR { $$ = $1 + $3; }
+	  T_SL hack_user_attributes T_SR	{ $$ = $2; }
+	| hack_user_attributes_list T_SL hack_user_attributes T_SR { $$ = array_merge($1, $3); }
 ;
 
 hack_lambda_arguments:
@@ -72,7 +72,7 @@ class_declaration_statement:
 	  extends_from implements_list '{' class_statement_list '}'
 	      { $$ = PhackStmt\Class_[$3, ['type' => $2, 'extends' => $5,
 	                                   'implements' => $6, 'stmts' => $8,
-	                                   'generics' => $4]]; }
+	                                   'generics' => $4, 'user_attributes' => $1]]; }
 
 	| hack_user_attributes_list T_ENUM T_STRING ':' T_STRING '{' hack_enum_list '}'
 	      { $$ = PhackStmt\Enum[$3, $5, $7]; }
@@ -89,11 +89,11 @@ class_statement:
 	                                        'returnType' => $9, 'stmts' => $10,
 	                                        'generics' => $5]]; }
 	| hack_user_attributes_list
-	  method_modifiers T_FUNCTION optional_ref identifier hack_non_optional_generics_placeholder_list
+	  method_modifiers T_FUNCTION optional_ref identifier hack_optional_generics_placeholder_list
 	  '(' parameter_list ')' optional_return_type method_body
 	      { $$ = PhackStmt\ClassMethod[$5, ['type' => $2, 'byRef' => $4, 'params' => $8,
 	                                        'returnType' => $10, 'stmts' => $11,
-	                                        'generics' => $6]]; }
+	                                        'generics' => $6, 'user_attributes' => $1]]; }
 ;
 
 function_declaration_statement:
@@ -107,7 +107,7 @@ function_declaration_statement:
 	  '(' parameter_list ')' optional_return_type '{' inner_statement_list '}'
 	      { $$ = PhackStmt\Function_[$4, ['byRef' => $3, 'params' => $7,
 	                                      'returnType' => $9, 'stmts' => $11,
-	                                      'generics' => $5]]; }
+	                                      'generics' => $5, 'user_attributes' => $1]]; }
 ;
 
 expr:
