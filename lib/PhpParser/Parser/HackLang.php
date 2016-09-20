@@ -2833,7 +2833,7 @@ class HackLang extends \PhpParser\ParserAbstract
     }
 
     protected function reduceRule494() {
-         $this->semValue = $this->semValue = array(new Node\Param(substr($this->semStack[$this->stackPos-(1-1)], 1), null, $this->startAttributeStack[$this->stackPos-(1-1)] + $this->endAttributes));
+         $this->semValue = $this->semValue = array(new Node\Param(substr($this->semStack[$this->stackPos-(1-1)], 1), null, null, false, false, $this->startAttributeStack[$this->stackPos-(1-1)] + $this->endAttributes));
     }
 
     protected function reduceRule495() {
@@ -2899,8 +2899,8 @@ class HackLang extends \PhpParser\ParserAbstract
     }
 
     protected function reduceRule508() {
-         $this->semValue = new PhackStmt\Function_($this->semStack[$this->stackPos-(12-4)], ['byRef' => $this->semStack[$this->stackPos-(12-3)], 'params' => $this->semStack[$this->stackPos-(12-7)], 'returnType' => $this->semStack[$this->stackPos-(12-9)],
-	                                      'stmts' => $this->semStack[$this->stackPos-(12-11)], 'user_attributes' => $this->semStack[$this->stackPos-(12-1)],
+         $this->semValue = new PhackStmt\Function_($this->semStack[$this->stackPos-(12-4)], ['byRef' => $this->semStack[$this->stackPos-(12-3)], 'params' => $this->semStack[$this->stackPos-(12-7)],
+	                                      'returnType' => $this->semStack[$this->stackPos-(12-9)], 'stmts' => $this->semStack[$this->stackPos-(12-11)],
 	                                      'generics' => $this->semStack[$this->stackPos-(12-5)]], $this->startAttributeStack[$this->stackPos-(12-1)] + $this->endAttributes);
     }
 

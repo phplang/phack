@@ -2,6 +2,7 @@
 
 namespace PhpLang\Phack\PhpParser\PrettyPrinter;
 
+use PhpLang\Phack\PhpParser\Node;
 use PhpLang\Phack\PhpParser\Node\Expr;
 use PhpLang\Phack\PhpParser\Node\Stmt;
 
@@ -13,20 +14,21 @@ use \PhpParser\Node\Stmt as pStmt;
 /**
  * Things we do to HackLang syntax:
  *
- * 1) Complete type erasure, even for types that PHP could verify
+ * 1) Partial type erasure, down to concrete base types
  *   - HH Type checker should be doing these checks for us, trust it.
- *   - No runtime cost, because nothing to check
- *   - Easier to implement if we're not dealing with Generic mappings
  * 2) Transform short lambda `==>` to a standard closure
  *   - Track variables in layered scopes to auto-populate `use` clause
  * 3) Transform `Enum` definitions into traditional classes
  *   - use PhpLang\Phack\Lib\EnumMethods
  *   - Enum values as consts
- *   - Set privaye props mirroring enums for quick reflection
+ *   - Set private props mirroring enums for quick reflection
  */
 class HackLang extends \PhpParser\PrettyPrinter\Standard {
-    /* @var array Current tracked variable scope for lambdas */
+    /** @var string[] Current tracked variable scope for lambdas */
     protected $lambdaScope = array(array());
+
+    /** @var int[string] Generics placeholder types */
+    protected $genericsTypes = array();
 
     public function __construct(array $options = array()) {
         $this->precedenceMap['Expr_Lambda'] = array(65, 1);
@@ -39,11 +41,63 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         }
     }
 
+    protected static function resolveTypename($type) {
+        if ($type === null) return '';
+        if (is_string($type)) return $type;
+        assert(is_object($type), 'Expecting placeholder typename, got intrinsic: '.print_r($type, true));
+        if ($type instanceof pNode\Name) {
+            return implode('\\', $type->parts);
+        } elseif ($type instanceof Node\GenericsType) {
+            return self::resolveTypename($type->basetype);
+        } elseif ($type instanceof Node\GenericsTypeAs) {
+            return self::resolveTypename($type->type);
+        } else {
+            assert(false, "Unknown placeholder typename".print_r($type, true));
+            return false;
+        }
+    }
+
+    protected function pushGenerics(array $generics) {
+        foreach ($generics as $g) {
+            $type = self::resolveTypename($g);
+            if (!empty($this->generics[$type])) {
+                ++$this->generics[$type];
+            } else {
+                $this->generics[$type] = 1;
+            }
+        }
+    }
+
+    protected function popGenerics(array $generics) {
+        foreach ($generics as $g) {
+            $type = self::resolveTypename($g);
+            if (!empty($this->generics[$type])) {
+                --$this->generics[$type];
+            } else {
+                $this->generics[$type] = 0;
+            }
+        }
+    }
+
+    protected function isPlaceholder($type) {
+        if (($type === null) || ($type === array())) return false;
+        $type = self::resolveTypename($type);
+        return !empty($this->generics[$type]);
+    }
+
+    public function pGenericsType(Node\GenericsType $type) {
+        if ($this->isPlaceholder($type)) return '';
+        return is_object($type->basetype) ? $this->p($type->basetype)
+                                          : ((string)$type->basetype);
+    }
+
     public function pParam(pNode\Param $param) {
-        $t = $param->type;
-        $param->type = null;
+        $type = $param->type;
+        if ($this->isPlaceholder($type)) {
+            $param->type = null;
+        }
         $ret = parent::pParam($param);
-        $param->type = $t;
+        $param->type = $type;
         return $ret;
     }
 
@@ -91,21 +145,39 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
     }
 
     public function pStmt_Function(pStmt\Function_ $func) {
+        if ($func instanceof Stmt\Function_) {
+            $this->pushGenerics($func->generics);
+        }
+
         array_push($this->lambdaScope, array());
         $rt = $func->returnType;
-        $func->returnType = null;
+        if ($this->isPlaceholder($func->returnType)) {
+            $func->returnType = null;
+        }
         $ret = parent::pStmt_Function($func);
         $func->returnType = $rt;
         array_pop($this->lambdaScope);
+
+        if ($func instanceof Stmt\Function_) {
+            $this->popGenerics($func->generics);
+        }
         return $ret;
     }
 
     public function pStmt_Class(pStmt\Class_ $cls) {
+        if ($cls instanceof Stmt\Class_) {
+            $this->pushGenerics($cls->generics);
+        }
+
         // Classes don't really have a scope, but props get picked up greedily
         // So stash them in this psuedo scope where they won't hurt anyone
         array_push($this->lambdaScope, array());
         $ret = parent::pStmt_Class($cls);
         array_pop($this->lambdaScope);
+
+        if ($cls instanceof Stmt\Class_) {
+            $this->popGenerics($cls->generics);
+        }
         return $ret;
     }
 
@@ -156,12 +228,20 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
     }
 
     public function pStmt_ClassMethod(pStmt\ClassMethod $func) {
+        if ($func instanceof Stmt\ClassMethod) {
+            $this->pushGenerics($func->generics);
+        }
+
         array_push($this->lambdaScope, array());
         $rt = $func->returnType;
         $func->returnType = null;
         $ret = parent::pStmt_ClassMethod($func);
         $func->returnType = $rt;
         array_pop($this->lambdaScope);
+
+        if ($func instanceof Stmt\ClassMethod) {
+            $this->popGenerics($func->generics);
+        }
         return $ret;
     }
 

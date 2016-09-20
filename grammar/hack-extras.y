@@ -47,7 +47,7 @@ hack_user_attributes_list:
 ;
 
 hack_lambda_arguments:
-	  T_VARIABLE { $$ = init(Node\Param[parseVar($1), null]); }
+	  T_VARIABLE { $$ = init(Node\Param[parseVar($1), null, null, false, false]); }
 	| T_LAMBDA_OP parameter_list T_LAMBDA_CP { $$ = $2; }
 ;
 
@@ -105,8 +105,8 @@ function_declaration_statement:
 	| hack_user_attributes_list
 	  T_FUNCTION optional_ref T_STRING hack_optional_generics_placeholder_list
 	  '(' parameter_list ')' optional_return_type '{' inner_statement_list '}'
-	      { $$ = PhackStmt\Function_[$4, ['byRef' => $3, 'params' => $7, 'returnType' => $9,
-	                                      'stmts' => $11, 'user_attributes' => $1,
+	      { $$ = PhackStmt\Function_[$4, ['byRef' => $3, 'params' => $7,
+	                                      'returnType' => $9, 'stmts' => $11,
 	                                      'generics' => $5]]; }
 ;
 

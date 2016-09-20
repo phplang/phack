@@ -40,22 +40,22 @@ class PhackGenericsTest extends PHPUnit_Framework_TestCase {
     public function testArgGenerics() {
         $this->assertTranspiles(array(
             'function foo(ImmSet<string> $set) {}' =>
-                "function foo(\$set)\n{\n}",
+                "function foo(ImmSet \$set)\n{\n}",
             'function bar(): Map<int> {}' =>
-                "function bar()\n{\n}",
+                "function bar() : Map\n{\n}",
             'function baz(array<string,int> $map): array<int,string> {}' =>
-                "function baz(\$map)\n{\n}",
+                "function baz(array \$map) : array\n{\n}",
         ));
     }
 
     public function testNestedGenerics() {
         $this->assertTranspiles(array(
             'function f(ConstMap<string, ConstSet<int> > $sets) {}' =>
-                "function f(\$sets)\n{\n}",
+                "function f(ConstMap \$sets)\n{\n}",
             'function f(ConstMap<string, ConstSet<int>> $sets) {}' =>
-                "function f(\$sets)\n{\n}",
+                "function f(ConstMap \$sets)\n{\n}",
             'function f(ConstVector<ConstMap<ConstSet<int>, string>> $sets) {}' =>
-                "function f(\$sets)\n{\n}",
+                "function f(ConstVector \$sets)\n{\n}",
         ));
     }
 
