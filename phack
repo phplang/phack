@@ -3,9 +3,21 @@
 
 use PhpLang\Phack;
 
-if (empty($_SERVER['argv'][1])) {
-    fwrite(STDERR, "Usage: {$_SERVER['argv'][0]} filename.php\n\n");
-    fwrite(STDERR, "Transpile filename.php from HackLang to PHP");
+$program = array_shift($_SERVER['argv']);
+$ast = false;
+$infile = array_shift($_SERVER['argv']);
+if ($infile === '--ast') {
+    $ast = true;
+    $infile = array_shift($_SERVER['argv']);
+}
+if ($infile === '-') {
+    $infile = 'php://stdin';
+}
+
+if ($infile === null) {
+    fwrite(STDERR, "Usage: [--ast] {$program} filename.php\n\n");
+    fwrite(STDERR, "Transpile filename.php from HackLang to PHP\n");
+    fwrite(STDERR, "or dump AST when --ast passed\n");
     exit;
 }
 
@@ -17,13 +29,9 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     throw new \RuntimeException("Unable to locate vendor/autoload.php");
 }
 
-if ($_SERVER['argv'][1] === '-') {
-  $file = stream_get_contents(STDIN);
+$file = file_get_contents($infile);
+if ($ast) {
+    print_r(Phack\compileString($file));
 } else {
-  $file = file_get_contents($_SERVER['argv'][1]);
+    echo "<?php", PHP_EOL, Phack\transpileString($file),PHP_EOL;
 }
-
-if (!strncmp($file, '<?hh', 4)) {
-    $file = "<?php".PHP_EOL.Phack\transpileString($file);
-}
-echo $file . PHP_EOL;
