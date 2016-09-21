@@ -17,7 +17,7 @@ Phack extends [PHP-Parser](https://www.github.com/nikic/PHP-Parser) by amending 
 | Feature | State | Notes |
 | ------- | ----- | ----- |
 | [Short Lambdas](https://docs.hhvm.com/hack/lambdas) | Alpha | Needs more tests |
-| [Generics](https://docs.hhvm.com/hack/generics) | Alpha | Full type erasure at runtime. Need to preserve for reflection. |
+| [Generics](https://docs.hhvm.com/hack/generics) | Alpha | Partial type erasure for PHP compat (base type preserved) |
 | [XHP](https://docs.hhvm.com/hack/XHP) | TBD | XHP-1.x support available through https://www.github.com/phplang/xhp for now, XHP-2.x coming with this library |
 | [Enums](https://docs.hhvm.com/hack/enums) | Alpha | Need to actually implement \InvariantException for full HackLang compat... |
 | [Pipe Op](https://docs.hhvm.com/hack/operators/pipe-operator) | TBD | |
