@@ -110,6 +110,10 @@ function_declaration_statement:
 	                                      'generics' => $5, 'user_attributes' => $1]]; }
 ;
 
+reserved_non_modifiers:
+	T_ENUM
+;
+
 expr:
 	  hack_lambda			                { $$ = $1; }
 ;
