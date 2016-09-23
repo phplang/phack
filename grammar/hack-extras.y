@@ -69,7 +69,9 @@ hack_parameter_type_list:
 ;
 
 type:
-	  name '<' hack_generics_placeholder_list '>' { $$ = PhackNode\GenericsType[$1, $3]; }
+	  '?' type { $$ = PhackNode\SoftNullableType[$2, false, true]; }
+	| '@' type { $$ = PhackNode\SoftNullableType[$2, true, false]; }
+	| name '<' hack_generics_placeholder_list '>' { $$ = PhackNode\GenericsType[$1, $3]; }
 	| T_ARRAY '<' hack_generics_placeholder_list '>' { $$ = PhackNode\GenericsType['array', $3]; }
 	| '(' T_FUNCTION optional_ref '(' hack_parameter_type_list ')' optional_return_type ')'
 	    { $$ = PhackNode\CallableType[$5, $7, $3]; }

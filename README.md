@@ -24,6 +24,7 @@ Phack extends [PHP-Parser](https://www.github.com/nikic/PHP-Parser) by amending 
 | [Type Aliasing](https://docs.hhvm.com/hack/type-aliases) | TBD | |
 | [Prop/Const Typing](https://docs.hhvm.com/hack/types) | Alpha | Props: Yes, Consts: No |
 | [Callable typing](https://docs.hhvm.com/hack/types) | Alpha | |
+| [Soft/Nullable typing](https://docs.hhvm.com/hack/types) | Alpha | Full erasure on soft/nullables. Need logging for soft, and need psuedo statements for nullable checking (or PHP 7.1 nullable type support) |
 | [User Attributes](https://docs.hhvm.com/hack/attributes) | Alpha | UA erasure, need to preserve somewhere for reflection. |
 | [Shapes](https://docs.hhvm.com/hack/shapes) | TBD | |
 | [Collections](https://docs.hhvm.com/hack/collections) | TBD | Static initialization is... complicated... |

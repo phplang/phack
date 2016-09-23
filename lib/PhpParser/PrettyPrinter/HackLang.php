@@ -46,13 +46,17 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         if (is_string($type)) return $type;
         assert(is_object($type), 'Expecting placeholder typename, got intrinsic: '.print_r($type, true));
         if ($type instanceof pNode\Name) {
-            return implode('\\', $type->parts);
+            return $type->toString();
         } elseif ($type instanceof Node\GenericsType) {
             return self::resolveTypename($type->basetype);
         } elseif ($type instanceof Node\GenericsTypeAs) {
             return self::resolveTypename($type->type);
         } elseif ($type instanceof Node\CallableType) {
             return 'callable';
+        } elseif ($type instanceof Node\SoftNullableType) {
+            /* TODO: Log type misses */
+            /* TODO: Deal with nullable checking for non-optionals */
+            return '';
         } else {
             assert(false, "Unknown placeholder typename".print_r($type, true));
             return false;
@@ -91,6 +95,10 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         if ($this->isPlaceholder($type)) return '';
         return is_object($type->basetype) ? $this->p($type->basetype)
                                           : ((string)$type->basetype);
+    }
+
+    public function pSoftNullableType(Node\SoftNullableType $type) {
+        return self::resolveTypename($type);
     }
 
     public function pParam(pNode\Param $param) {
