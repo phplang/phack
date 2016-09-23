@@ -30,6 +30,9 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
     /** @var int[string] Generics placeholder types */
     protected $genericsTypes = array();
 
+    /** @var Expr[] LHS of current/nested pipe expressions */
+    protected $pipes = array();
+
     public function __construct(array $options = array()) {
         $this->precedenceMap['Expr_Lambda'] = array(65, 1);
         parent::__construct($options);
@@ -156,6 +159,28 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
             $ret .= ' use ($' . implode(', $', $use) . ')';
         }
         return $ret . $impl;
+    }
+
+    public function pExpr_Pipe(Expr\Pipe $pipe) {
+        array_push($this->pipes, $pipe->lhs);
+        $ret = $this->p($pipe->rhs);
+        if (null !== array_pop($this->pipes)) {
+            throw new \Exception('LHS of pipe expression was not used');
+        }
+        return $ret;
+    }
+
+    public function pExpr_PipeVar(Expr\PipeVar $var) {
+        if (count($this->pipes) === 0) {
+            throw new \Exception('$$ used outside of a pipe expression');
+        }
+        $expr = array_pop($this->pipes);
+        if (null === $expr) {
+            throw new \Exception('Only one instance of $$ is allowed in a pipe expression');
+        }
+        $ret = $this->p($expr);
+        array_push($this->pipes, null);
+        return $ret;
     }
 
     public function pStmt_Function(pStmt\Function_ $func) {

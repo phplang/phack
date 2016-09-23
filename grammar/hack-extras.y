@@ -130,6 +130,11 @@ reserved_non_modifiers:
 	T_ENUM
 ;
 
+variable:
+	  T_PIPE_VAR { $$ = PhackExpr\PipeVar[]; }
+;
+
 expr:
-	  hack_lambda			                { $$ = $1; }
+	  hack_lambda { $$ = $1; }
+	| expr T_PIPE expr { $$ = PhackExpr\Pipe[$1, $3]; }
 ;

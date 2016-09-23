@@ -20,7 +20,7 @@ Phack extends [PHP-Parser](https://www.github.com/nikic/PHP-Parser) by amending 
 | [Generics](https://docs.hhvm.com/hack/generics) | Alpha | Partial type erasure for PHP compat (base type preserved) |
 | [XHP](https://docs.hhvm.com/hack/XHP) | TBD | XHP-1.x support available through https://www.github.com/phplang/xhp for now, XHP-2.x coming with this library |
 | [Enums](https://docs.hhvm.com/hack/enums) | Alpha | Need to actually implement \InvariantException for full HackLang compat... |
-| [Pipe Op](https://docs.hhvm.com/hack/operators/pipe-operator) | TBD | |
+| [Pipe Op](https://docs.hhvm.com/hack/operators/pipe-operator) | Alpha | Limited to one use of lhs in rhs (unlike HackLang) |
 | [Type Aliasing](https://docs.hhvm.com/hack/type-aliases) | TBD | |
 | [Prop/Const Typing](https://docs.hhvm.com/hack/types) | Alpha | Props: Yes, Consts: No |
 | [Callable typing](https://docs.hhvm.com/hack/types) | Alpha | |

@@ -33,8 +33,8 @@ $SED -e 's/namespace PhpParser\\Parser;/namespace PhpLang\\Phack\\PhpParser\\Par
 	> tokens.template
 
 $SED -e '/REQUIRE_ONCE/a %right T_LAMBDA_ARROW' \
-     -e '/REQUIRE_ONCE/a %token T_LAMBDA_OP T_LAMBDA_CP' \
-     -e '/REQUIRE_ONCE/a %left T_ENUM' \
+     -e '/REQUIRE_ONCE/a %token T_LAMBDA_OP T_LAMBDA_CP T_PIPE_VAR' \
+     -e '/REQUIRE_ONCE/a %left T_ENUM T_PIPE' \
 	< ../vendor/nikic/php-parser/grammar/tokens.y \
 	> tokens.y
 

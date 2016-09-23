@@ -8,6 +8,8 @@ class HackLang extends \PhpParser\Lexer\Emulative {
     const T_LAMBDA_OP = 2001;
     const T_LAMBDA_CP = 2002;
     const T_ENUM = 2003;
+    const T_PIPE = 2004;
+    const T_PIPE_VAR = 2005;
 
     public function __construct(array $options = array()) {
         parent::__construct($options);
@@ -16,6 +18,8 @@ class HackLang extends \PhpParser\Lexer\Emulative {
         $this->tokenMap[self::T_LAMBDA_OP]    = Tokens::T_LAMBDA_OP;
         $this->tokenMap[self::T_LAMBDA_CP]    = Tokens::T_LAMBDA_CP;
         $this->tokenMap[self::T_ENUM]         = Tokens::T_ENUM;
+        $this->tokenMap[self::T_PIPE]         = Tokens::T_PIPE;
+        $this->tokenMap[self::T_PIPE_VAR]     = Tokens::T_PIPE_VAR;
     }
 
     /*
@@ -158,6 +162,10 @@ class HackLang extends \PhpParser\Lexer\Emulative {
         // Copypasta from base Lexer\Emulative
         // Deal with our rewrites first, since parent will panic on unknown rewrite
         for ($i = 0, $c = count($this->tokens); $i < $c; ++$i) {
+            // For translating single-char-only tokens to a multi-char token w/ lineno
+            if (isset($this->tokens[$i][2])) {
+                $lastline = $this->tokens[$i][2];
+            }
             // first check that the following tokens are of form ~LABEL~,
             // then match the __EMU__... sequence.
             if ('~' === $this->tokens[$i]
@@ -206,6 +214,24 @@ class HackLang extends \PhpParser\Lexer\Emulative {
                 && self::isProbableNestedGenericExpressionEnd($this->tokens, $i)) {
                 array_splice($this->tokens, $i, 1, array('>', '>'));
                 ++$c;
+
+            // '|' '>' to T_PIPE unconditionally
+            } elseif (($this->tokens[$i] === '|')
+                && isset($this->tokens[$i+1])
+                && ($this->tokens[$i+1] === '>')) {
+                array_splice($this->tokens, $i, 2, array(
+                    array(self::T_PIPE, '|>', $lastline),
+                ));
+                --$c;
+
+            // '$' '$' to T_PIPE_VAR unconditionally
+            } elseif (($this->tokens[$i] === '$')
+                && isset($this->tokens[$i+1])
+                && ($this->tokens[$i+1] === '$')) {
+                array_splice($this->tokens, $i, 2, array(
+                    array(self::T_PIPE_VAR, '$$', $lastline),
+                ));
+                --$c;
 
             // finally, replace a short open tag followed by `hh`
             // with a long open tag.
