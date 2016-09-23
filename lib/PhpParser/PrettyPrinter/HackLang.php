@@ -51,6 +51,8 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
             return self::resolveTypename($type->basetype);
         } elseif ($type instanceof Node\GenericsTypeAs) {
             return self::resolveTypename($type->type);
+        } elseif ($type instanceof Node\CallableType) {
+            return 'callable';
         } else {
             assert(false, "Unknown placeholder typename".print_r($type, true));
             return false;
@@ -99,6 +101,10 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         $ret = parent::pParam($param);
         $param->type = $type;
         return $ret;
+    }
+
+    public function pCallableType(Node\CallableType $callable) {
+        return 'callable';
     }
 
     public function pExpr_Variable(pExpr\Variable $var) {

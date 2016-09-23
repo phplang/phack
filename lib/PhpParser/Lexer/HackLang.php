@@ -134,6 +134,26 @@ class HackLang extends \PhpParser\Lexer\Emulative {
         }
     }
 
+    private static function isCastToken($token) {
+        if (!isset($token[0])) return false;
+        $t = $token[0];
+        return (($t === T_BOOL_CAST)
+            || ($t === T_INT_CAST)
+            || ($t === T_DOUBLE_CAST)
+            || ($t === T_STRING_CAST)
+            || ($t === T_ARRAY_CAST)
+            || ($t === T_OBJECT_CAST));
+    }
+
+    private static function isProbableFalseCastToken(array $tokens, $pos) {
+        for (--$pos; isset($tokens[$pos]); --$pos) {
+            $t = $tokens[$pos];
+            if (($t !== '&') && !(isset($t[0]) && ($t[0] === T_WHITESPACE))) break;
+        }
+        return isset($tokens[$pos][0])
+            && ($tokens[$pos][0] === T_FUNCTION);
+    }
+
     protected function postprocessTokens() {
         // Copypasta from base Lexer\Emulative
         // Deal with our rewrites first, since parent will panic on unknown rewrite
@@ -161,6 +181,23 @@ class HackLang extends \PhpParser\Lexer\Emulative {
                 && !strcasecmp('enum', $this->tokens[$i][1])
             ) {
                 $this->tokens[$i][0] = self::T_ENUM;
+
+            // Change T_CAST_* to '(' T_STRING ')' as needed
+            // to avoid callable typehints being misparsed:
+            // e.g. function f((function(int):bool) $x) {}
+            } elseif (is_array($this->tokens[$i])
+                && self::isCastToken($this->tokens[$i])
+                && self::isProbableFalseCastToken($this->tokens, $i)) {
+                array_splice($this->tokens, $i, 1, array(
+                    '(',
+                    array(
+                        T_STRING,
+                        trim($this->tokens[$i][1], '()'),
+                        $this->tokens[$i][2],
+                    ),
+                    ')',
+                ));
+                $c += 2;
 
             // Translate >> to > and >
             // to allow nested generics

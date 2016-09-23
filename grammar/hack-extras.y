@@ -56,9 +56,23 @@ hack_lambda:
 	| hack_lambda_arguments T_LAMBDA_ARROW '{' inner_statement_list '}' { $$ = PhackExpr\Lambda[$1, $4]; }
 ;
 
+hack_non_empty_parameter_type_list:
+	  type { $$ = init($1); }
+	| hack_non_empty_parameter_type_list ',' type { $$ = push($1, $3); }
+;
+
+hack_parameter_type_list:
+	  /* empty */ { $$ = init(false); }
+	| T_ELLIPSIS { $$ = init(true); }
+	| hack_non_empty_parameter_type_list { $$ = push($1, false); }
+	| hack_non_empty_parameter_type_list ',' T_ELLIPSIS { $$ = push($1, true); }
+;
+
 type:
 	  name '<' hack_generics_placeholder_list '>' { $$ = PhackNode\GenericsType[$1, $3]; }
 	| T_ARRAY '<' hack_generics_placeholder_list '>' { $$ = PhackNode\GenericsType['array', $3]; }
+	| '(' T_FUNCTION optional_ref '(' hack_parameter_type_list ')' optional_return_type ')'
+	    { $$ = PhackNode\CallableType[$5, $7, $3]; }
 ;
 
 class_declaration_statement:
