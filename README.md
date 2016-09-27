@@ -22,6 +22,7 @@ Phack extends [PHP-Parser](https://www.github.com/nikic/PHP-Parser) by amending 
 | [Enums](https://docs.hhvm.com/hack/enums) | Alpha | Need to actually implement \InvariantException for full HackLang compat... |
 | [Pipe Op](https://docs.hhvm.com/hack/operators/pipe-operator) | Alpha | Limited to one use of lhs in rhs (unlike HackLang) |
 | [Type Aliasing](https://docs.hhvm.com/hack/type-aliases) | TBD | |
+| [Constructor Parameter Promotion](https://docs.hhvm.com/hack/other-features/constructor-parameter-promotion) | TBD | |
 | [Prop/Const Typing](https://docs.hhvm.com/hack/types) | Alpha | Props: Yes, Consts: No |
 | [Callable typing](https://docs.hhvm.com/hack/types) | Alpha | |
 | [Soft/Nullable typing](https://docs.hhvm.com/hack/types) | Alpha | Full erasure on soft/nullables. Need logging for soft, and need psuedo statements for nullable checking (or PHP 7.1 nullable type support) |
