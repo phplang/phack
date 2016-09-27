@@ -33,7 +33,7 @@ class ClassLoader extends \Composer\Autoload\ClassLoader {
         if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
           $old = require __DIR__ . '/../vendor/autoload.php';
         } elseif (file_exists(__DIR__ . '/../../../autoload.php')) {
-          $old = require __DIR__ . '/../../../vendor/autoload.php';
+          $old = require __DIR__ . '/../../../autoload.php';
         } else {
           throw new \RuntimeException("Can't find composer root, unable to hijack autoloader");
         }
