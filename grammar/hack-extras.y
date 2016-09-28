@@ -68,6 +68,30 @@ hack_parameter_type_list:
 	| hack_non_empty_parameter_type_list ',' T_ELLIPSIS { $$ = push($1, true); }
 ;
 
+hack_parameter_list:
+	  hack_non_empty_parameter_list { $$ = $1; }
+	| /* empty */ { $$ = array(); }
+;
+
+hack_non_empty_parameter_list:
+	  hack_parameter { init($1); }
+	| hack_non_empty_parameter_list ',' hack_parameter { push($1, $3); }
+;
+
+hack_parameter:
+	  hack_optional_visibility_modifier optional_param_type optional_ref optional_ellipsis
+	  T_VARIABLE { $$ = PhackNode\Param[parseVar($5), null, $2, $3, $4, $1]; }
+	| hack_optional_visibility_modifier optional_param_type optional_ref optional_ellipsis
+	  T_VARIABLE '=' expr { $$ = PhackNode\Param[parseVar($5), $7, $2, $3, $4, $1]; }
+;
+
+hack_optional_visibility_modifier:
+	  /* empty */ { $$ = null; }
+    | T_PUBLIC { $$ = Stmt\Class_::MODIFIER_PUBLIC; }
+    | T_PROTECTED { $$ = Stmt\Class_::MODIFIER_PROTECTED; }
+    | T_PRIVATE { $$ = Stmt\Class_::MODIFIER_PRIVATE; }
+;
+
 type:
 	  '?' type { $$ = PhackNode\SoftNullableType[$2, false, true]; }
 	| '@' type { $$ = PhackNode\SoftNullableType[$2, true, false]; }
@@ -99,14 +123,14 @@ class_declaration_statement:
 class_statement:
 	  variable_modifiers type property_declaration_list ';' { $$ = Stmt\Property[$1, $3]; }
 
-	| method_modifiers T_FUNCTION optional_ref identifier hack_non_optional_generics_placeholder_list
-	  '(' parameter_list ')' optional_return_type method_body
+	| method_modifiers T_FUNCTION optional_ref identifier hack_optional_generics_placeholder_list
+	  '(' hack_parameter_list ')' optional_return_type method_body
 	      { $$ = PhackStmt\ClassMethod[$4, ['type' => $1, 'byRef' => $3, 'params' => $7,
 	                                        'returnType' => $9, 'stmts' => $10,
 	                                        'generics' => $5]]; }
 	| hack_user_attributes_list
 	  method_modifiers T_FUNCTION optional_ref identifier hack_optional_generics_placeholder_list
-	  '(' parameter_list ')' optional_return_type method_body
+	  '(' hack_parameter_list ')' optional_return_type method_body
 	      { $$ = PhackStmt\ClassMethod[$5, ['type' => $2, 'byRef' => $4, 'params' => $8,
 	                                        'returnType' => $10, 'stmts' => $11,
 	                                        'generics' => $6, 'user_attributes' => $1]]; }

@@ -111,6 +111,7 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         }
         $ret = parent::pParam($param);
         $param->type = $type;
+
         return $ret;
     }
 
@@ -211,9 +212,38 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         // Classes don't really have a scope, but props get picked up greedily
         // So stash them in this psuedo scope where they won't hurt anyone
         array_push($this->lambdaScope, array());
-        $ret = parent::pStmt_Class($cls);
-        array_pop($this->lambdaScope);
 
+        $stmts = $cls->stmts;
+        $ctor = null;
+        foreach ($cls->stmts as $idx => $stmt) {
+            if (!($stmt instanceof Stmt\ClassMethod)) continue;
+            if (strcasecmp($stmt->name, '__construct')) continue;
+            $ctor = $stmt;
+            $ctor_stmts = $ctor->stmts;
+            foreach ($stmt->params as $param) {
+                if (!($param instanceof Node\Param)) continue;
+                if ($param->visibility === null) continue;
+                $cls->stmts[] = new pStmt\Property($param->visibility, array(
+                    new pStmt\PropertyProperty($param->name),
+                ));
+                array_unshift($ctor->stmts, new pExpr\Assign(
+                    new pExpr\PropertyFetch(
+                        new pExpr\Variable('this'),
+                        $param->name
+                    ),
+                    new pExpr\Variable($param->name)
+                ));
+            }
+        }
+
+        $ret = parent::pStmt_Class($cls);
+
+        // Restore state
+        $cls->stmts = $stmts;
+        if ($ctor !== null) {
+            $ctor->stmts = $ctor_stmts;
+        }
+        array_pop($this->lambdaScope);
         if ($cls instanceof Stmt\Class_) {
             $this->popGenerics($cls->generics);
         }

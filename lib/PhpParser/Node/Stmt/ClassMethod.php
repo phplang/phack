@@ -32,6 +32,13 @@ class ClassMethod extends \PhpParser\Node\Stmt\ClassMethod
         $this->generics = isset($subNodes['generics']) ? $subNodes['generics'] : array();
         $this->user_attributes = isset($subNodes['user_attributes'])
                                      ? $subNodes['user_attributes'] : array();
+        if (strcasecmp($this->name, '__construct')) {
+            foreach ($this->params as $param) {
+                if (!($param instanceof \PhpLang\Phack\PhpParser\Node\Param)) continue;
+                if ($param->visibility === null) return;
+                throw new Error('Only constructor args may have visibility', $attributes);
+            }
+        }
     }
 
     public function getSubNodeNames() {
