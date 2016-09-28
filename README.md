@@ -30,6 +30,7 @@ Phack extends [PHP-Parser](https://www.github.com/nikic/PHP-Parser) by amending 
 | [Shapes](https://docs.hhvm.com/hack/shapes) | TBD | |
 | [Collections](https://docs.hhvm.com/hack/collections) | TBD | Static initialization is... complicated... |
 | [Async](https://docs.hhvm.com/hack/async) | Unlikely | PHP's Engine just doesn't support this concept well |
+| Trailing Commas | Alpha | Allow trailing comma in arg/param lists |
 
 ## How do I use it?
 

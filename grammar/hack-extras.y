@@ -70,6 +70,7 @@ hack_parameter_type_list:
 
 hack_parameter_list:
 	  hack_non_empty_parameter_list { $$ = $1; }
+	| hack_non_empty_parameter_list ',' { $$ = $1; }
 	| /* empty */ { $$ = array(); }
 ;
 
@@ -90,6 +91,14 @@ hack_optional_visibility_modifier:
     | T_PUBLIC { $$ = Stmt\Class_::MODIFIER_PUBLIC; }
     | T_PROTECTED { $$ = Stmt\Class_::MODIFIER_PROTECTED; }
     | T_PRIVATE { $$ = Stmt\Class_::MODIFIER_PRIVATE; }
+;
+
+parameter_list:
+	  non_empty_parameter_list ',' { $$ = $1; }
+;
+
+argument_list:
+	  '(' non_empty_argument_list ',' ')' { $$ = $2; }
 ;
 
 type:
