@@ -5,19 +5,13 @@ require __DIR__ . '/../vendor/autoload.php';
 use PhpLang\Phack;
 
 class PhackPipeOpTest extends PHPUnit_Framework_TestCase {
-    private function assertTranspiles(array $map) {
-       foreach ($map as $hack => $php) {
-           $this->assertEquals($php, Phack\transpileString("<?hh $hack"));
-       }
-    }
+    use Phack\Test\AssertTranspilesTrait;
 
     public function testBasicPipe() {
-       $this->assertTranspiles(array(
-           '$x |> $$;' => '$x;',
-           '$x |> foo($$);' => 'foo($x);',
-           '$x |> $$ . $y;' => '$x . $y;',
-           '$x |> a($$) |> b($$) |> c($$);' => 'c(b(a($x)));',
-       ));
+       $this->assertTranspiles('$x;', '$x |> $$;');
+       $this->assertTranspiles('foo($x);', '$x |> foo($$);');
+       $this->assertTranspiles('$x . $y;', '$x |> $$ . $y;');
+       $this->assertTranspiles('c(b(a($x)));', '$x |> a($$) |> b($$) |> c($$);');
     }
 
     public function testWrongPipeCount() {
@@ -33,8 +27,6 @@ class PhackPipeOpTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testNestedPipes() {
-       $this->assertTranspiles(array(
-           '$x |> (a($$) |> b($$)) |> c($$);' => 'c(b(a($x)));',
-       ));
+       $this->assertTranspiles('c(b(a($x)));', '$x |> (a($$) |> b($$)) |> c($$);');
     }
 }

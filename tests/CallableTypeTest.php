@@ -2,22 +2,17 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use PhpLang\Phack;
+use PhpLang\Phack\Test;
 
 class PhackCallableTypeTest extends PHPUnit_Framework_TestCase {
-    private function assertTranspiles(array $map) {
-       foreach ($map as $hack => $php) {
-           $this->assertEquals($php, Phack\transpileString("<?hh $hack"));
-       }
-    }
+    use Test\AssertTranspilesTrait;
 
     public function testBasicCallable() {
        $bc = "function f(callable \$x)\n{\n}";
-       $this->assertTranspiles(array(
-           'function f((function()) $x) {}' => $bc,
-           'function f((function(int)) $x) {}' => $bc,
-           'function f((function(int,string,array<foo>)) $x) {}' => $bc,
-           'function f(callable $x) {}' => $bc,
-       ));
+       $this->assertTranspiles($bc, 'function f((function()) $x) {}');
+       $this->assertTranspiles($bc, 'function f((function()) $x) {}');
+       $this->assertTranspiles($bc, 'function f((function(int)) $x) {}');
+       $this->assertTranspiles($bc, 'function f((function(int,string,array<foo>)) $x) {}');
+       $this->assertTranspiles($bc, 'function f(callable $x) {}');
     }
 }

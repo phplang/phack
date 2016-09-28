@@ -5,11 +5,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use PhpLang\Phack;
 
 class PhackUserAttributesTest extends PHPUnit_Framework_TestCase {
-    private function assertTranspiles(array $map) {
-       foreach ($map as $hack => $php) {
-           $this->assertEquals($php, Phack\transpileString("<?hh $hack"));
-       }
-    }
+    use Phack\Test\AssertTranspilesTrait;
 
     private function assertUAon($pattern, $cb) {
         $ast = Phack\compileString(sprintf('<?hh '.$pattern,
@@ -29,20 +25,14 @@ class PhackUserAttributesTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testUAFunctions() {
-        $this->assertTranspiles(array(
-            '<<Foo>>function foo() {}' =>
-                "function foo()\n{\n}",
-        ));
+        $this->assertTranspiles('function foo() { }', '<<Foo>>function foo() {}');
         $this->assertUAon('%s function f() {}', function($ast) { return $ast[0]; });
     }
 
     public function testUAClasses() {
-        $this->assertTranspiles(array(
-            '<<Foo>>class Bar {}' =>
-                "class Bar\n{\n}",
-            '<<Foo>>class Bar { <<Baz>>public function Qux() {} }' =>
-                "class Bar\n{\n    public function Qux()\n    {\n    }\n}",
-        ));
+        $this->assertTranspiles('class Bar { }', '<<Foo>>class Bar {}');
+        $this->assertTranspiles('class Bar { public function Qux() { } }',
+                                '<<Foo>>class Bar { <<Baz>>public function Qux() {} }');
         $this->assertUAon('%s class C {}', function ($ast) { return $ast[0]; });
         $this->assertUAon('class C { %s public function D() {} }',
             function ($ast) { return $ast[0]->stmts[0]; });

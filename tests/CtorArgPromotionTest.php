@@ -2,22 +2,16 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use PhpLang\Phack;
+use PhpLang\Phack\Test;
 
 class PhackCtorArgPromotionTest extends PHPUnit_Framework_TestCase {
-
-    private function assertTranspiles(array $map) {
-       foreach ($map as $hack => $php) {
-           $this->assertEquals($php, Phack\transpileString("<?hh $hack"));
-       }
-    }
+    use Test\AssertTranspilesTrait;
 
     public function testParseCtorArgPromotion() {
-        $this->assertTranspiles(array(
-            'class C { function __construct(public $x, protected $y = "foo") {} }' =>
-                "class C\n{\n    function __construct(\$x, \$y = \"foo\")\n".
-                "    {\n        \$this->y = \$y;\n        \$this->x = \$x;\n    }\n".
-                "    public \$x;\n    protected \$y;\n}",
-        ));
+        $this->assertTranspiles(
+            'class C { function __construct($x, $y = "foo") { $this->y = $y; $this->x = $x; } '.
+                'public $x; protected $y; }',
+            'class C { function __construct(public $x, protected $y = "foo") {} }'
+        );
     }
 }

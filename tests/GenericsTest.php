@@ -5,58 +5,40 @@ require __DIR__ . '/../vendor/autoload.php';
 use PhpLang\Phack;
 
 class PhackGenericsTest extends PHPUnit_Framework_TestCase {
-
-    private function assertTranspiles(array $map) {
-       foreach ($map as $hack => $php) {
-           $this->assertEquals($php, Phack\transpileString("<?hh $hack"));
-       }
-    }
+    use Phack\Test\AssertTranspilesTrait;
 
     public function testClassGenerics() {
-        $this->assertTranspiles(array(
-            'class Foo<T> {}' => "class Foo\n{\n}",
-            'class Foo<T> { public T $data; }' =>
-                "class Foo\n{\n    public \$data;\n}",
-            'class Foo<A, B as Bar> {}' => "class Foo\n{\n}",
-            'class Foo<T> { public function bar(): T {}}' =>
-                "class Foo\n{\n    public function bar()\n    {\n    }\n}",
-        ));
+        $this->assertTranspiles('class Foo { }', 'class Foo<T> {}');
+        $this->assertTranspiles('class Foo { public $data; }', 'class Foo<T> { public T $data; }');
+        $this->assertTranspiles('class Foo { }', 'class Foo<A, B as Bar> {}');
+        $this->assertTranspiles('class Foo { public function bar() { } }',
+                                'class Foo <T> { public function bar(): T {}}');
     }
 
     public function testFunctionGenerics() {
-        $this->assertTranspiles(array(
-            'function foo<Tk,Tv>(Tk $key, Tv $val): Tv {}' =>
-                "function foo(\$key, \$val)\n{\n}",
-        ));
+        $this->assertTranspiles('function foo($key, $val) { }',
+                                'function foo<Tk,Tv>(Tk $key, Tv $val): Tv {}');
     }
 
     public function testMethodGenerics() {
-        $this->assertTranspiles(array(
-            'class C { function foo<Tk,Tv>(Tk $key, Tv $val): Tv {}}' =>
-                "class C\n{\n    function foo(\$key, \$val)\n    {\n    }\n}",
-        ));
+        $this->assertTranspiles('class C { function foo($key, $val) { } }',
+                                'class C { function foo<Tk,Tv>(Tk $key, Tv $val): Tv {}}');
     }
 
     public function testArgGenerics() {
-        $this->assertTranspiles(array(
-            'function foo(ImmSet<string> $set) {}' =>
-                "function foo(ImmSet \$set)\n{\n}",
-            'function bar(): Map<int> {}' =>
-                "function bar() : Map\n{\n}",
-            'function baz(array<string,int> $map): array<int,string> {}' =>
-                "function baz(array \$map) : array\n{\n}",
-        ));
+        $this->assertTranspiles('function foo(ImmSet $set) { }', 'function foo(ImmSet<string> $set) {}');
+        $this->assertTranspiles('function bar() : Map { }', 'function bar(): Map<int> {}');
+        $this->assertTranspiles('function baz(array $map) : array { }',
+                                'function baz(array<string,int> $map): array<int,string> {}');
     }
 
     public function testNestedGenerics() {
-        $this->assertTranspiles(array(
-            'function f(ConstMap<string, ConstSet<int> > $sets) {}' =>
-                "function f(ConstMap \$sets)\n{\n}",
-            'function f(ConstMap<string, ConstSet<int>> $sets) {}' =>
-                "function f(ConstMap \$sets)\n{\n}",
-            'function f(ConstVector<ConstMap<ConstSet<int>, string>> $sets) {}' =>
-                "function f(ConstVector \$sets)\n{\n}",
-        ));
+        $this->assertTranspiles('function f(ConstMap $sets) { }',
+                                'function f(ConstMap<string, ConstSet<int> > $sets) {}');
+        $this->assertTranspiles('function f(ConstMap $sets) { }',
+                                'function f(ConstMap<string, ConstSet<int>> $sets) {}');
+        $this->assertTranspiles('function f(ConstVector $sets) { }',
+                                'function f(ConstVector<ConstMap<ConstSet<int>, string>> $sets) {}');
     }
 
     public function testParseSubtypes() {
