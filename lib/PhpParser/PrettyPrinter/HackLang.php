@@ -2,14 +2,8 @@
 
 namespace PhpLang\Phack\PhpParser\PrettyPrinter;
 
-use PhpLang\Phack\PhpParser\Node;
-use PhpLang\Phack\PhpParser\Node\Expr;
-use PhpLang\Phack\PhpParser\Node\Stmt;
-
-use \PhpParser\Node as pNode;
-use \PhpParser\Node\Expr as pExpr;
-use \PhpParser\Node\Scalar as pScalar;
-use \PhpParser\Node\Stmt as pStmt;
+use PhpLang\Phack\PhpParser\Node as PhackNode;
+use PhpParser\Node as ParserNode;
 
 /**
  * Things we do to HackLang syntax:
@@ -39,7 +33,7 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
     }
 
     protected function pushScopeVar($name) {
-        if (!($name instanceof pExpr)) {
+        if (!($name instanceof ParserNode\Expr)) {
             $this->lambdaScope[count($this->lambdaScope) - 1][$name] = true;
         }
     }
@@ -48,15 +42,15 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         if ($type === null) return '';
         if (is_string($type)) return $type;
         assert(is_object($type), 'Expecting placeholder typename, got intrinsic: '.print_r($type, true));
-        if ($type instanceof pNode\Name) {
+        if ($type instanceof ParserNode\Name) {
             return $type->toString();
-        } elseif ($type instanceof Node\GenericsType) {
+        } elseif ($type instanceof PhackNode\GenericsType) {
             return self::resolveTypename($type->basetype);
-        } elseif ($type instanceof Node\GenericsTypeAs) {
+        } elseif ($type instanceof PhackNode\GenericsTypeAs) {
             return self::resolveTypename($type->type);
-        } elseif ($type instanceof Node\CallableType) {
+        } elseif ($type instanceof PhackNode\CallableType) {
             return 'callable';
-        } elseif ($type instanceof Node\SoftNullableType) {
+        } elseif ($type instanceof PhackNode\SoftNullableType) {
             /* TODO: Log type misses */
             /* TODO: Deal with nullable checking for non-optionals */
             return '';
@@ -94,17 +88,17 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         return !empty($this->generics[$type]);
     }
 
-    public function pGenericsType(Node\GenericsType $type) {
+    public function pGenericsType(PhackNode\GenericsType $type) {
         if ($this->isPlaceholder($type)) return '';
         return is_object($type->basetype) ? $this->p($type->basetype)
                                           : ((string)$type->basetype);
     }
 
-    public function pSoftNullableType(Node\SoftNullableType $type) {
+    public function pSoftNullableType(PhackNode\SoftNullableType $type) {
         return self::resolveTypename($type);
     }
 
-    public function pParam(pNode\Param $param) {
+    public function pParam(ParserNode\Param $param) {
         $type = $param->type;
         if ($this->isPlaceholder($type)) {
             $param->type = null;
@@ -115,33 +109,33 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         return $ret;
     }
 
-    public function pCallableType(Node\CallableType $callable) {
+    public function pCallableType(PhackNode\CallableType $callable) {
         return 'callable';
     }
 
-    public function pExpr_Variable(pExpr\Variable $var) {
+    public function pExpr_Variable(ParserNode\Expr\Variable $var) {
         $this->pushScopeVar($var->name);
         return parent::pExpr_Variable($var);
     }
 
-    public function pExpr_Closure(pExpr\Closure $closure) {
+    public function pExpr_Closure(ParserNode\Expr\Closure $closure) {
         array_push($this->lambdaScope, array());
         $ret = parent::pExpr_Closure($closure);
         array_pop($this->lambdaScope);
         return $ret;
     }
 
-    public function pExpr_ClosureUse(pExpr\ClosureUse $use) {
+    public function pExpr_ClosureUse(ParserNode\Expr\ClosureUse $use) {
         $this->pushScopeVar($use->var);
         return parent::pExpr_ClosureUse($use);
     }
 
-    public function pExpr_Lambda(Expr\Lambda $lambda) {
+    public function pExpr_Lambda(PhackNode\Expr\Lambda $lambda) {
         $parentScope = $this->lambdaScope[count($this->lambdaScope) - 1];
 
         array_push($this->lambdaScope, array());
         if ((count($lambda->stmts) === 1)
-             && ($lambda->stmts[0] instanceof pStmt\Return_)) {
+             && ($lambda->stmts[0] instanceof ParserNode\Stmt\Return_)) {
             $impl = ' { ' . $this->p($lambda->stmts[0]) . ' }';
         } else {
             $impl = ' {' . $this->pStmts($lambda->stmts) . "\n}";
@@ -162,7 +156,7 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         return $ret . $impl;
     }
 
-    public function pExpr_Pipe(Expr\Pipe $pipe) {
+    public function pExpr_Pipe(PhackNode\Expr\Pipe $pipe) {
         array_push($this->pipes, $pipe->lhs);
         $ret = $this->p($pipe->rhs);
         if (null !== array_pop($this->pipes)) {
@@ -171,7 +165,7 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         return $ret;
     }
 
-    public function pExpr_PipeVar(Expr\PipeVar $var) {
+    public function pExpr_PipeVar(PhackNode\Expr\PipeVar $var) {
         if (count($this->pipes) === 0) {
             throw new \Exception('$$ used outside of a pipe expression');
         }
@@ -184,8 +178,8 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         return $ret;
     }
 
-    public function pStmt_Function(pStmt\Function_ $func) {
-        if ($func instanceof Stmt\Function_) {
+    public function pStmt_Function(ParserNode\Stmt\Function_ $func) {
+        if ($func instanceof PhackNode\Stmt\Function_) {
             $this->pushGenerics($func->generics);
         }
 
@@ -198,14 +192,14 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         $func->returnType = $rt;
         array_pop($this->lambdaScope);
 
-        if ($func instanceof Stmt\Function_) {
+        if ($func instanceof PhackNode\Stmt\Function_) {
             $this->popGenerics($func->generics);
         }
         return $ret;
     }
 
-    public function pStmt_Class(pStmt\Class_ $cls) {
-        if ($cls instanceof Stmt\Class_) {
+    public function pStmt_Class(ParserNode\Stmt\Class_ $cls) {
+        if ($cls instanceof PhackNode\Stmt\Class_) {
             $this->pushGenerics($cls->generics);
         }
 
@@ -216,22 +210,22 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         $stmts = $cls->stmts;
         $ctor = null;
         foreach ($cls->stmts as $idx => $stmt) {
-            if (!($stmt instanceof Stmt\ClassMethod)) continue;
+            if (!($stmt instanceof PhackNode\Stmt\ClassMethod)) continue;
             if (strcasecmp($stmt->name, '__construct')) continue;
             $ctor = $stmt;
             $ctor_stmts = $ctor->stmts;
             foreach ($stmt->params as $param) {
-                if (!($param instanceof Node\Param)) continue;
+                if (!($param instanceof PhackNode\Param)) continue;
                 if ($param->visibility === null) continue;
-                $cls->stmts[] = new pStmt\Property($param->visibility, array(
-                    new pStmt\PropertyProperty($param->name),
+                $cls->stmts[] = new ParserNode\Stmt\Property($param->visibility, array(
+                    new ParserNode\Stmt\PropertyProperty($param->name),
                 ));
-                array_unshift($ctor->stmts, new pExpr\Assign(
-                    new pExpr\PropertyFetch(
-                        new pExpr\Variable('this'),
+                array_unshift($ctor->stmts, new ParserNode\Expr\Assign(
+                    new ParserNode\Expr\PropertyFetch(
+                        new ParserNode\Expr\Variable('this'),
                         $param->name
                     ),
-                    new pExpr\Variable($param->name)
+                    new ParserNode\Expr\Variable($param->name)
                 ));
             }
         }
@@ -244,7 +238,7 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
             $ctor->stmts = $ctor_stmts;
         }
         array_pop($this->lambdaScope);
-        if ($cls instanceof Stmt\Class_) {
+        if ($cls instanceof PhackNode\Stmt\Class_) {
             $this->popGenerics($cls->generics);
         }
         return $ret;
@@ -257,7 +251,7 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
      * 2) private $names array for value to name reverse mapping/reflection
      * 3) private $values array for forward mapping/reflection
      */
-    public function pStmt_Enum(Stmt\Enum $enum) {
+    public function pStmt_Enum(PhackNode\Stmt\Enum $enum) {
         // Triplicate the const values
         // First as const statements for Foo::BAR access
         // Second in a private prop for getValues()
@@ -265,30 +259,31 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
 
         $names = $values = array();
         foreach ($enum->values as $const) {
-            $name = new pScalar\String_($const->name, array('kind'=> pScalar\String_::KIND_SINGLE_QUOTED));
-            $names[]  = new pExpr\ArrayItem($name, $const->value);
-            $values[] = new pExpr\ArrayItem($const->value, $name);
+            $name = new ParserNode\Scalar\String_($const->name,
+                array('kind'=> ParserNode\Scalar\String_::KIND_SINGLE_QUOTED));
+            $names[]  = new ParserNode\Expr\ArrayItem($name, $const->value);
+            $values[] = new ParserNode\Expr\ArrayItem($const->value, $name);
         }
 
         $stmts = array(
-            new pStmt\Use_(array(
-                new pStmt\UseUse(new pNode\Name('\PhpLang\Phack\Lib\EnumMethods')),
+            new ParserNode\Stmt\Use_(array(
+                new ParserNode\Stmt\UseUse(new ParserNode\Name('\PhpLang\Phack\Lib\EnumMethods')),
             )),
-            new pStmt\Property(pStmt\Class_::MODIFIER_PRIVATE |
-                               pStmt\Class_::MODIFIER_STATIC, array(
-                new pStmt\PropertyProperty('names', new pExpr\Array_($names)),
-                new pStmt\PropertyProperty('values', new pExpr\Array_($values)),
+            new ParserNode\Stmt\Property(ParserNode\Stmt\Class_::MODIFIER_PRIVATE |
+                                        ParserNode\Stmt\Class_::MODIFIER_STATIC, array(
+                new ParserNode\Stmt\PropertyProperty('names', new ParserNode\Expr\Array_($names)),
+                new ParserNode\Stmt\PropertyProperty('values', new ParserNode\Expr\Array_($values)),
             )),
         );
 
         if ($enum->values) {
-            $stmts[] = new pStmt\Const_($enum->values);
+            $stmts[] = new ParserNode\Stmt\Const_($enum->values);
         }
 
-        $cls = new pStmt\Class_(
+        $cls = new ParserNode\Stmt\Class_(
             $enum->name,
             array(
-                'type'  => pStmt\Class_::MODIFIER_ABSTRACT,
+                'type'  => ParserNode\Stmt\Class_::MODIFIER_ABSTRACT,
                 'stmts' => $stmts,
             )
         );
@@ -296,8 +291,8 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         return $this->pStmt_Class($cls);
     }
 
-    public function pStmt_ClassMethod(pStmt\ClassMethod $func) {
-        if ($func instanceof Stmt\ClassMethod) {
+    public function pStmt_ClassMethod(ParserNode\Stmt\ClassMethod $func) {
+        if ($func instanceof PhackNode\Stmt\ClassMethod) {
             $this->pushGenerics($func->generics);
         }
 
@@ -308,7 +303,7 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         $func->returnType = $rt;
         array_pop($this->lambdaScope);
 
-        if ($func instanceof Stmt\ClassMethod) {
+        if ($func instanceof PhackNode\Stmt\ClassMethod) {
             $this->popGenerics($func->generics);
         }
         return $ret;
