@@ -33,7 +33,7 @@ class Function_ extends \PhpParser\Node\Stmt\Function_
     }
 
     public function getSubNodeNames() {
-        return parent::getSubNodeNames() + array('generics', 'user_attributes');
+        return array_merge(parent::getSubNodeNames(), array('generics', 'user_attributes'));
     }
 
 }

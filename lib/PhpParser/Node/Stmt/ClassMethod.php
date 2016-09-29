@@ -42,6 +42,6 @@ class ClassMethod extends \PhpParser\Node\Stmt\ClassMethod
     }
 
     public function getSubNodeNames() {
-        return parent::getSubNodeNames() + array('generics', 'user_attributes');
+        return array_merge(parent::getSubNodeNames(), array('generics', 'user_attributes'));
     }
 }

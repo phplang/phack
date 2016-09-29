@@ -27,6 +27,6 @@ class Param extends \PhpParser\Node\Param {
     }
 
     public function getSubNodeNames() {
-        return parent::getSubNodeNames() + array('visibility');
+        return array_merge(parent::getSubNodeNames(), array('visibility'));
     }
 }

@@ -34,6 +34,6 @@ class Class_ extends \PhpParser\Node\Stmt\Class_
     }
 
     public function getSubNodeNames() {
-        return parent::getSubNodeNames() + array('generics', 'user_attributes');
+        return array_merge(parent::getSubNodeNames(), array('generics', 'user_attributes'));
     }
 }
