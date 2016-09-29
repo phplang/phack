@@ -18,6 +18,10 @@ class PhackGenericsTest extends PHPUnit_Framework_TestCase {
     public function testFunctionGenerics() {
         $this->assertTranspiles('function foo($key, $val) { }',
                                 'function foo<Tk,Tv>(Tk $key, Tv $val): Tv {}');
+        $this->assertTranspiles('function foo($x) { }',
+                                'function foo<T as Foo>(T $x) {}');
+        $this->assertTranspiles('function foo($x) { }',
+                                'function foo<T super Foo>(T $x) {}');
     }
 
     public function testMethodGenerics() {
@@ -42,21 +46,19 @@ class PhackGenericsTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testParseSubtypes() {
-        $tree = Phack\compileString('<?hh function f(X<Y> $z, A\\B<C\\D as E\\F> $g) {}');
+        $tree = Phack\compileString('<?hh function f(X<Y> $z, A\\B<C\\D> $e) {}');
 
         $param = $tree[0]->params[0];
         $this->assertInstanceOf(Phack\PhpParser\Node\GenericsType::class, $param->type);
         $this->assertInstanceOf(\PhpParser\Node\Name::class, $param->type->basetype);
-        $this->assertEquals('X', implode('\\', $param->type->basetype->parts));
+        $this->assertEquals('X', $param->type->basetype->toString());
         $this->assertInstanceOf(\PhpParser\Node\Name::class, $param->type->subtypes[0]);
-        $this->assertEquals('Y', implode('\\', $param->type->subtypes[0]->parts));
+        $this->assertEquals('Y', $param->type->subtypes[0]->toString());
 
         $param = $tree[0]->params[1];
         $this->assertInstanceOf(Phack\PhpParser\Node\GenericsType::class, $param->type);
         $this->assertInstanceOf(\PhpParser\Node\Name::class, $param->type->basetype);
-        $this->assertEquals('A\\B', implode('\\', $param->type->basetype->parts));
-        $this->assertInstanceOf(Phack\PhpParser\Node\GenericsTypeAs::class, $param->type->subtypes[0]);
-        $this->assertEquals('C\\D', implode('\\', $param->type->subtypes[0]->name->parts));
-        $this->assertEquals('E\\F', implode('\\', $param->type->subtypes[0]->as->parts));
+        $this->assertEquals('A\\B', $param->type->basetype->toString());
+        $this->assertEquals('C\\D', $param->type->subtypes[0]->toString());
     }
 }

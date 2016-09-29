@@ -1,11 +1,12 @@
-hack_generics_covariant_placeholder:
+hack_generics_placeholder:
 	  type { $$ = $1; }
-	| type T_AS type { $$ = PhackNode\GenericsTypeAs[$1, $3]; }
+	| type T_AS type { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::AS, $3]; }
+	| type T_SUPER type { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::SUPER, $3]; }
 ;
 
 hack_generics_placeholder_list:
-	  hack_generics_covariant_placeholder { $$ = init($1); }
-	| hack_generics_placeholder_list ',' hack_generics_covariant_placeholder { $$ = push($1, $3); }
+	  hack_generics_placeholder { $$ = init($1); }
+	| hack_generics_placeholder_list ',' hack_generics_placeholder { $$ = push($1, $3); }
 ;
 
 hack_non_optional_generics_placeholder_list:
@@ -14,7 +15,12 @@ hack_non_optional_generics_placeholder_list:
 
 hack_optional_generics_placeholder_list:
 	  /* empty */ { $$ = null; }
-	| '<' hack_generics_placeholder_list '>' { $$ = $2; }
+	| hack_non_optional_generics_placeholder_list { $$ = $1; }
+;
+
+hack_type_list:
+	  type { $$ = init($1); }
+	| hack_type_list ',' type { $$ = push($1, $3); }
 ;
 
 hack_enum:
@@ -109,8 +115,8 @@ argument_list:
 type:
 	  '?' type { $$ = PhackNode\SoftNullableType[$2, false, true]; }
 	| '@' type { $$ = PhackNode\SoftNullableType[$2, true, false]; }
-	| name '<' hack_generics_placeholder_list '>' { $$ = PhackNode\GenericsType[$1, $3]; }
-	| T_ARRAY '<' hack_generics_placeholder_list '>' { $$ = PhackNode\GenericsType['array', $3]; }
+	| name '<' hack_type_list '>' { $$ = PhackNode\GenericsType[$1, $3]; }
+	| T_ARRAY '<' hack_type_list '>' { $$ = PhackNode\GenericsType['array', $3]; }
 	| '(' T_FUNCTION optional_ref '(' hack_parameter_type_list ')' optional_return_type ')'
 	    { $$ = PhackNode\CallableType[$5, $7, $3]; }
 ;

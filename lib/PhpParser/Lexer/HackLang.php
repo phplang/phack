@@ -10,6 +10,7 @@ class HackLang extends \PhpParser\Lexer\Emulative {
     const T_ENUM = 2003;
     const T_PIPE = 2004;
     const T_PIPE_VAR = 2005;
+    const T_SUPER = 2006;
 
     public function __construct(array $options = array()) {
         parent::__construct($options);
@@ -20,6 +21,7 @@ class HackLang extends \PhpParser\Lexer\Emulative {
         $this->tokenMap[self::T_ENUM]         = Tokens::T_ENUM;
         $this->tokenMap[self::T_PIPE]         = Tokens::T_PIPE;
         $this->tokenMap[self::T_PIPE_VAR]     = Tokens::T_PIPE_VAR;
+        $this->tokenMap[self::T_SUPER]        = Tokens::T_SUPER;
     }
 
     /*
@@ -189,6 +191,13 @@ class HackLang extends \PhpParser\Lexer\Emulative {
                 && !strcasecmp('enum', $this->tokens[$i][1])
             ) {
                 $this->tokens[$i][0] = self::T_ENUM;
+
+            // Replace `super` strings to T_SUPER
+            } elseif (is_array($this->tokens[$i])
+                && T_STRING === $this->tokens[$i][0]
+                && !strcasecmp('super', $this->tokens[$i][1])
+            ) {
+                $this->tokens[$i][0] = self::T_SUPER;
 
             // Change T_CAST_* to '(' T_STRING ')' as needed
             // to avoid callable typehints being misparsed:

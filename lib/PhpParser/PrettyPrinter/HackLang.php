@@ -46,8 +46,8 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
             return $type->toString();
         } elseif ($type instanceof PhackNode\GenericsType) {
             return self::resolveTypename($type->basetype);
-        } elseif ($type instanceof PhackNode\GenericsTypeAs) {
-            return self::resolveTypename($type->type);
+        } elseif ($type instanceof PhackNode\GenericsConstraint) {
+            return self::resolveTypename($type->name);
         } elseif ($type instanceof PhackNode\CallableType) {
             return 'callable';
         } elseif ($type instanceof PhackNode\SoftNullableType) {
