@@ -93,6 +93,11 @@ hack_optional_visibility_modifier:
     | T_PRIVATE { $$ = Stmt\Class_::MODIFIER_PRIVATE; }
 ;
 
+property_declaration:
+	  type T_VARIABLE { $$ = PhackStmt\PropertyProperty[parseVar($2), null, $1]; }
+	| type T_VARIABLE '=' expr { $$ = PhackStmt\PropertyProperty[parseVar($2), $4, $1]; }
+;
+
 parameter_list:
 	  non_empty_parameter_list ',' { $$ = $1; }
 ;
@@ -130,9 +135,7 @@ class_declaration_statement:
 ;
 
 class_statement:
-	  variable_modifiers type property_declaration_list ';' { $$ = Stmt\Property[$1, $3]; }
-
-	| method_modifiers T_FUNCTION optional_ref identifier hack_optional_generics_placeholder_list
+	  method_modifiers T_FUNCTION optional_ref identifier hack_optional_generics_placeholder_list
 	  '(' hack_parameter_list ')' optional_return_type method_body
 	      { $$ = PhackStmt\ClassMethod[$4, ['type' => $1, 'byRef' => $3, 'params' => $7,
 	                                        'returnType' => $9, 'stmts' => $10,
