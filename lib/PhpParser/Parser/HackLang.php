@@ -2867,7 +2867,7 @@ class HackLang extends \PhpParser\ParserAbstract
     }
 
     protected function reduceRule488() {
-         $this->semValue = new PhackNode\GenericsConstraint($this->semStack[$this->stackPos-(3-1)], PhackNode\GenericsConstraint::AS, $this->semStack[$this->stackPos-(3-3)], $this->startAttributeStack[$this->stackPos-(3-1)] + $this->endAttributes);
+         $this->semValue = new PhackNode\GenericsConstraint($this->semStack[$this->stackPos-(3-1)], PhackNode\GenericsConstraint::AS_TYPE, $this->semStack[$this->stackPos-(3-3)], $this->startAttributeStack[$this->stackPos-(3-1)] + $this->endAttributes);
     }
 
     protected function reduceRule489() {

@@ -6,13 +6,13 @@ class GenericsConstraint extends \PhpParser\NodeAbstract
 {
     use GetType;
 
-    const AS = 1;
+    const AS_TYPE = 1;
     const SUPER = 2;
 
     /** @var string|pNode\Name Typename Placeholder */
     public $name;
 
-    /** @var int Constraint: self::AS or self::SUPER */
+    /** @var int Constraint: self::AS_TYPE or self::SUPER */
     public $rel;
 
     /** @var string|pNode\Name Type As/Super (co/contra variance) */
@@ -22,7 +22,7 @@ class GenericsConstraint extends \PhpParser\NodeAbstract
      * Constructs a name node.
      *
      * @param string|pNode\Name $name       Typename Placeholder
-     * @param int               $rel        self::AS or self::SUPER
+     * @param int               $rel        self::AS_TYPE or self::SUPER
      * @param string|pNode\Name $constraint Type As/Super (co/contra variance)
      * @param array             $attributes Additional attributes
      */

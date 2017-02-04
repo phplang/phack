@@ -95,7 +95,9 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         }
 
         if ($type instanceof PhackNode\GenericsConstraint) {
-            return self::resolveTypename($type->name);
+            return self::resolveTypename($type->name) .
+                ($type->rel === PhackNode\GenericsConstraint::AS_TYPE ? ' as ' : ' super ') .
+                self::resolveTypename($type->constraint);
         }
 
         if ($type instanceof PhackNode\CallableType) {
@@ -103,11 +105,7 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         }
 
         if ($type instanceof PhackNode\SoftNullableType) {
-            if ($type->type instanceof ParserNode\Name) {
-                return ($type->nullable ? '?' : '') . self::resolveTypename($type->type);
-            }
-            
-            return '';
+            return ($type->nullable ? '?' : '') . self::resolveTypenameForDocblock($type->type);
         }
 
         assert(false, "Unknown placeholder typename ".print_r($type, true));
@@ -313,6 +311,16 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         $cls->stmts = array_merge($commented_properties, array_filter($cls->stmts));
 
         $ret = parent::pStmt_Class($cls);
+
+        if ($cls->generics) {
+            $template_tags = [];
+
+            foreach ($cls->generics as $generic) {
+                $template_tags[] = ' * @template ' . self::resolveTypenameForDocblock($generic);
+            }
+
+            $ret = '/**' . PHP_EOL . implode(PHP_EOL, $template_tags) . PHP_EOL . ' */' . PHP_EOL . $ret;
+        }
 
         // Restore state
         $cls->stmts = $stmts;
