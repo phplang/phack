@@ -53,7 +53,7 @@ hack_user_attributes_list:
 ;
 
 hack_lambda_arguments:
-	  T_VARIABLE { $$ = init(Node\Param[parseVar($1), null, null, false, false]); }
+	  plain_variable { $$ = init(Node\Param[$1, null, null, false, false]); }
 	| T_LAMBDA_OP parameter_list T_LAMBDA_CP { $$ = $2; }
 ;
 

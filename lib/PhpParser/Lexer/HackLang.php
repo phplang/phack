@@ -167,20 +167,15 @@ class HackLang extends \PhpParser\Lexer\Emulative {
             }
             // first check that the following tokens are of form ~LABEL~,
             // then match the __EMU__... sequence.
-            if ('~' === $this->tokens[$i]
-                && isset($this->tokens[$i + 2])
-                && '~' === $this->tokens[$i + 2]
-                && is_array($this->tokens[$i + 1])
-                && T_STRING === $this->tokens[$i + 1][0]
-                && preg_match('(===>(?:([A-Za-z0-9]++)__)?$)', $this->tokens[$i + 1][1], $matches)
+            if (T_IS_EQUAL === $this->tokens[$i][0]
+                && isset($this->tokens[$i + 1])
+                && '>' === $this->tokens[$i + 1]
             ) {
-                if ('LAMBDAARROW' === $matches[1]) {
-                    array_splice($this->tokens, $i, 3, array(
-                        array(self::T_LAMBDA_ARROW, '==>', $this->tokens[$i + 1][2]),
-                    ));
-                    $c -= 2;
-                    $this->fixupLambdaParens($i);
-                }
+                array_splice($this->tokens, $i, 2, array(
+                    [self::T_LAMBDA_ARROW, '==>', $this->tokens[$i][2]],
+                ));
+                $c -= 2;
+                $this->fixupLambdaParens($i);
 
             // second, change `enum` strings to T_ENUM
             } elseif (is_array($this->tokens[$i])
