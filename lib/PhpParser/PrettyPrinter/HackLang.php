@@ -42,22 +42,76 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         if ($type === null) return '';
         if (is_string($type)) return $type;
         assert(is_object($type), 'Expecting placeholder typename, got intrinsic: '.print_r($type, true));
+        
         if ($type instanceof ParserNode\Name) {
             return $type->toString();
-        } elseif ($type instanceof PhackNode\GenericsType) {
-            return self::resolveTypename($type->basetype);
-        } elseif ($type instanceof PhackNode\GenericsConstraint) {
-            return self::resolveTypename($type->name);
-        } elseif ($type instanceof PhackNode\CallableType) {
-            return 'callable';
-        } elseif ($type instanceof PhackNode\SoftNullableType) {
-            /* TODO: Log type misses */
-            /* TODO: Deal with nullable checking for non-optionals */
-            return '';
-        } else {
-            assert(false, "Unknown placeholder typename".print_r($type, true));
-            return false;
         }
+
+        if ($type instanceof PhackNode\GenericsType) {
+            return self::resolveTypename($type->basetype);
+        }
+
+        if ($type instanceof PhackNode\GenericsConstraint) {
+            return self::resolveTypename($type->name);
+        }
+
+        if ($type instanceof PhackNode\CallableType) {
+            return 'callable';
+        }
+
+        if ($type instanceof PhackNode\SoftNullableType) {
+            if ($type->type instanceof ParserNode\Name) {
+                return ($type->nullable ? '?' : '') . self::resolveTypename($type->type);
+            }
+            
+            return '';
+        }
+
+        assert(false, "Unknown placeholder typename ".print_r($type, true));
+        return false;
+    }
+
+    protected static function resolveTypenameForDocblock($type)
+    {
+        if ($type === null) return '';
+        if (is_string($type)) return $type;
+        assert(is_object($type), 'Expecting placeholder typename, got intrinsic: '.print_r($type, true));
+        
+        if ($type instanceof ParserNode\Name) {
+            return $type->toString();
+        }
+
+        if ($type instanceof PhackNode\GenericsType) {
+            return self::resolveTypename($type->basetype) . '<' .
+                implode(
+                    ', ',
+                    array_map(
+                        function ($generic_type) {
+                            return self::resolveTypenameForDocblock($generic_type);
+                        },
+                        $type->subtypes
+                    )
+                ) . '>';
+        }
+
+        if ($type instanceof PhackNode\GenericsConstraint) {
+            return self::resolveTypename($type->name);
+        }
+
+        if ($type instanceof PhackNode\CallableType) {
+            return 'callable';
+        }
+
+        if ($type instanceof PhackNode\SoftNullableType) {
+            if ($type->type instanceof ParserNode\Name) {
+                return ($type->nullable ? '?' : '') . self::resolveTypename($type->type);
+            }
+            
+            return '';
+        }
+
+        assert(false, "Unknown placeholder typename ".print_r($type, true));
+        return false;
     }
 
     protected function pushGenerics(array $generics) {
@@ -214,13 +268,13 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         foreach ($cls->stmts as $idx => &$stmt) {
             if ($stmt instanceof ParserNode\Stmt\Property) {
                 foreach ($stmt->props as $prop) {
-                    $new_property = new ParserNode\Stmt\Property($stmt->type, array(
+                    $new_property = new ParserNode\Stmt\Property($stmt->flags, [
                         new ParserNode\Stmt\PropertyProperty($prop->name, $prop->default),
-                    ));
+                    ]);
                     if ($prop->type) {
-                        $new_property->setAttribute('comments', array(
-                            new \PhpParser\Comment\Doc('/** @var ' . $prop->type . ' */'),
-                        ));
+                        $new_property->setAttribute('comments', [
+                            new \PhpParser\Comment\Doc('/** @var ' . self::resolveTypenameForDocblock($prop->type) . ' */'),
+                        ]);
                     }
                     $commented_properties[] = $new_property;
                 }
@@ -238,24 +292,25 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
                 }
                 if ($param->visibility === null) continue;
 
-                $cls->stmts[] = new ParserNode\Stmt\Property($param->visibility, array(
-                    new ParserNode\Stmt\PropertyProperty($param->name),
-                ));
-                array_unshift($ctor->stmts, new ParserNode\Expr\Assign(
-                    new ParserNode\Expr\PropertyFetch(
-                        new ParserNode\Expr\Variable('this'),
-                        $param->name
-                    ),
-                    new ParserNode\Expr\Variable($param->name)
-                ));
+                $cls->stmts[] = new ParserNode\Stmt\Property($param->visibility, [
+                    new ParserNode\Stmt\PropertyProperty($param->var->name),
+                ]);
+                array_unshift(
+                    $ctor->stmts,
+                    new ParserNode\Stmt\Expression(
+                        new ParserNode\Expr\Assign(
+                            new ParserNode\Expr\PropertyFetch(
+                                new ParserNode\Expr\Variable('this'),
+                                $param->var->name
+                            ),
+                            new ParserNode\Expr\Variable($param->var->name)
+                        )
+                    )
+                );
             }
         }
 
-        $cls->stmts = $commented_properties + array_filter($cls->stmts);
-
-        var_dump($cls->stmts);
-
-        //$cls->stmts = array_filter($cls->stmts);
+        $cls->stmts = array_merge($commented_properties, array_filter($cls->stmts));
 
         $ret = parent::pStmt_Class($cls);
 

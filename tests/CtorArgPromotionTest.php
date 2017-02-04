@@ -9,7 +9,7 @@ class PhackCtorArgPromotionTest extends PHPUnit\Framework\TestCase {
 
     public function testParseCtorArgPromotion() {
         $this->assertTranspiles(
-            'class C { function __construct($x, $y = "foo") { $this->y = $y; $this->x = $x; } public $x; protected $y; }',
+            'class C { public $x; protected $y; function __construct($x, $y = "foo") { $this->y = $y; $this->x = $x; } }',
             'class C { function __construct(public $x, protected $y = "foo") {} }'
         );
     }

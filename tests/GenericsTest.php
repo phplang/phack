@@ -8,10 +8,10 @@ class PhackGenericsTest extends PHPUnit\Framework\TestCase {
     use Phack\Test\AssertTranspilesTrait;
 
     public function testClassGenerics() {
-        $this->assertTranspiles('class Foo { }', 'class Foo<T> {}');
-        $this->assertTranspiles('class Foo { public $data; }', 'class Foo<T> { public T $data; }');
-        $this->assertTranspiles('class Foo { }', 'class Foo<A, B as Bar> {}');
-        $this->assertTranspiles('class Foo { public function bar() { } }',
+        $this->assertTranspiles('/** @template T */ class Foo { }', 'class Foo<T> {}');
+        $this->assertTranspiles('/** @template T */ class Foo { /** @var T */ public $data; }', 'class Foo<T> { public T $data; }');
+        $this->assertTranspiles('/** @template A @template B as Bar */ class Foo { }', 'class Foo<A, B as Bar> {}');
+        $this->assertTranspiles('/** @template T */ class Foo { /** @return T */ public function bar() { } }',
                                 'class Foo <T> { public function bar(): T {}}');
     }
 

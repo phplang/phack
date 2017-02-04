@@ -87,9 +87,9 @@ hack_non_empty_parameter_list:
 
 hack_parameter:
 	  hack_optional_visibility_modifier optional_param_type optional_ref optional_ellipsis
-	  T_VARIABLE { $$ = PhackNode\Param[parseVar($5), null, $2, $3, $4, $1]; }
+	  plain_variable { $$ = PhackNode\Param[$5, null, $2, $3, $4, $1]; }
 	| hack_optional_visibility_modifier optional_param_type optional_ref optional_ellipsis
-	  T_VARIABLE '=' expr { $$ = PhackNode\Param[parseVar($5), $7, $2, $3, $4, $1]; }
+	  plain_variable '=' expr { $$ = PhackNode\Param[$5, $7, $2, $3, $4, $1]; }
 ;
 
 hack_optional_visibility_modifier:
@@ -113,9 +113,12 @@ argument_list:
 ;
 
 hack_type_expr:
-	  '?' hack_type_expr { $$ = PhackNode\SoftNullableType[$2, false, true]; }
+      name { $$ = $1; }
+	| '?' hack_type_expr { $$ = PhackNode\SoftNullableType[$2, false, true]; }
 	| '@' hack_type_expr { $$ = PhackNode\SoftNullableType[$2, true, false]; }
 	| name '<' hack_type_list '>' { $$ = PhackNode\GenericsType[$1, $3]; }
+	| T_ARRAY { $$ = maybeMakeIdent('array'); }
+    | T_CALLABLE { $$ = maybeMakeIdent('callable'); }
 	| T_ARRAY '<' hack_type_list '>' { $$ = PhackNode\GenericsType['array', $3]; }
 	| '(' T_FUNCTION optional_ref '(' hack_parameter_type_list ')' optional_return_type ')'
 	    { $$ = PhackNode\CallableType[$5, $7, $3]; }

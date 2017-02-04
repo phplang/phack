@@ -9,7 +9,7 @@ class PhackSoftNullableTypeTest extends PHPUnit\Framework\TestCase {
 
     public function testBasicSoftNullable() {
        $sn = "function f( \$x)\n{\n}";
-       $this->assertTranspiles($sn, 'function f(?int $x) {}');
+       $this->assertTranspiles('function f(?int $x) { }', 'function f(?int $x) {}');
        $this->assertTranspiles($sn, 'function f(@Vector<string> $x) {}');
        $this->assertTranspiles($sn, 'function f(?@array<array<int>> $x) {}');
     }
