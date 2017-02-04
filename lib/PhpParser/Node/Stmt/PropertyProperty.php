@@ -14,10 +14,10 @@ class PropertyProperty extends ParserNode\Stmt\PropertyProperty
     /**
      * Constructs a class property node.
      *
-     * @param string         $name       Name
-     * @param null|Node\Expr $default    Default value
-     * @param ?Type          $type       Property type
-     * @param array          $attributes Additional attributes
+     * @param string                $name       Name
+     * @param null|ParserNode\Expr  $default    Default value
+     * @param ?Type                 $type       Property type
+     * @param array                 $attributes Additional attributes
      */
     public function __construct($name, ParserNode\Expr $default = null,
                                 $type, array $attributes = array()) {

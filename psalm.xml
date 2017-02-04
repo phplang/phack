@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<psalm
+  stopOnFirstError="false"
+  useDocblockTypes="true"
+>
+    <projectFiles>
+        <directory name="lib" />
+        <ignoreFiles>
+            <file name="lib/PhpParser/Parser/HackLang.php" />
+            <file name="lib/ClassLoader.php" />
+        </ignoreFiles>
+    </projectFiles>
+    <issueHandlers>
+        <MissingReturnType errorLevel="info" />
+        <MissingClosureReturnType errorLevel="info" />
+        <MissingPropertyType errorLevel="info" />
+        <MisplacedRequiredParam errorLevel="suppress" />
+        <MethodSignatureMismatch errorLevel="suppress" />
+        <PossiblyUndefinedVariable errorLevel="info" />
+    </issueHandlers>
+</psalm>

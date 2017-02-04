@@ -4,7 +4,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use PhpLang\Phack\Test;
 
-class PhackCallableTypeTest extends PHPUnit_Framework_TestCase {
+class PhackCallableTypeTest extends PHPUnit\Framework\TestCase {
     use Test\AssertTranspilesTrait;
 
     public function testBasicCallable() {

@@ -209,14 +209,35 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
 
         $stmts = $cls->stmts;
         $ctor = null;
-        foreach ($cls->stmts as $idx => $stmt) {
+        $commented_properties = [];
+
+        foreach ($cls->stmts as $idx => &$stmt) {
+            if ($stmt instanceof ParserNode\Stmt\Property) {
+                foreach ($stmt->props as $prop) {
+                    $new_property = new ParserNode\Stmt\Property($stmt->type, array(
+                        new ParserNode\Stmt\PropertyProperty($prop->name, $prop->default),
+                    ));
+                    if ($prop->type) {
+                        $new_property->setAttribute('comments', array(
+                            new \PhpParser\Comment\Doc('/** @var ' . $prop->type . ' */'),
+                        ));
+                    }
+                    $commented_properties[] = $new_property;
+                }
+
+                $stmt = null;
+            }
+
             if (!($stmt instanceof PhackNode\Stmt\ClassMethod)) continue;
             if (strcasecmp($stmt->name, '__construct')) continue;
             $ctor = $stmt;
             $ctor_stmts = $ctor->stmts;
             foreach ($stmt->params as $param) {
-                if (!($param instanceof PhackNode\Param)) continue;
+                if (!($param instanceof PhackNode\Param)) {
+                    continue;
+                }
                 if ($param->visibility === null) continue;
+
                 $cls->stmts[] = new ParserNode\Stmt\Property($param->visibility, array(
                     new ParserNode\Stmt\PropertyProperty($param->name),
                 ));
@@ -229,6 +250,12 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
                 ));
             }
         }
+
+        $cls->stmts = $commented_properties + array_filter($cls->stmts);
+
+        var_dump($cls->stmts);
+
+        //$cls->stmts = array_filter($cls->stmts);
 
         $ret = parent::pStmt_Class($cls);
 

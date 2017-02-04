@@ -66,30 +66,6 @@ class HackLang extends \PhpParser\Lexer\Emulative {
         return $tokenMap;
     }
 
-    private function preprocessOpenTag($code) {
-        // Special handling of open tag with special special handling of Shebangs
-        $lines = explode("\n", $code, 3);
-        $firstline = array_shift($lines);
-        $shebang = '';
-        if (!strncmp($firstline, '#!', 2)) {
-            $shebang = $firstline . "\n";
-            $firstline = array_shift($lines);
-        }
-        if (strncmp($firstline, '<?hh', 4)) {
-            throw new \RuntimeException('HackLang files must begin with <?hh');
-
-        }
-        return $shebang . '<?php' . substr($firstline, 4) . "\n" .
-               implode("\n", $lines);
-    }
-
-    protected function preprocessCode($code) {
-        $code = $this->preprocessOpenTag($code);
-        $code = str_replace('==>', '~__EMU__LAMBDAARROW__~', $code);
-
-        return parent::preprocessCode($code);
-    }
-
     /**
      * Scans back from the current token position to try to find
      * a pattern like:  < (T_ARRAY|T_STRING|T_AS)* >>
@@ -160,7 +136,28 @@ class HackLang extends \PhpParser\Lexer\Emulative {
             && ($tokens[$pos][0] === T_FUNCTION);
     }
 
-    protected function postprocessTokens() {
+    private function preprocessOpenTag($code) {
+        // Special handling of open tag with special special handling of Shebangs
+        $lines = explode("\n", $code, 3);
+        $firstline = array_shift($lines);
+        $shebang = '';
+        if (!strncmp($firstline, '#!', 2)) {
+            $shebang = $firstline . "\n";
+            $firstline = array_shift($lines);
+        }
+        if (strncmp($firstline, '<?hh', 4)) {
+            throw new \RuntimeException('HackLang files must begin with <?hh');
+
+        }
+        return $shebang . '<?php' . substr($firstline, 4) . "\n" .
+               implode("\n", $lines);
+    }
+
+    protected function requiresEmulation($code) {
+        return true;
+    }
+
+    protected function emulateTokens() {
         // Copypasta from base Lexer\Emulative
         // Deal with our rewrites first, since parent will panic on unknown rewrite
         for ($i = 0, $c = count($this->tokens); $i < $c; ++$i) {
@@ -175,7 +172,7 @@ class HackLang extends \PhpParser\Lexer\Emulative {
                 && '~' === $this->tokens[$i + 2]
                 && is_array($this->tokens[$i + 1])
                 && T_STRING === $this->tokens[$i + 1][0]
-                && preg_match('(^__EMU__([A-Z]++)__(?:([A-Za-z0-9]++)__)?$)', $this->tokens[$i + 1][1], $matches)
+                && preg_match('(===>(?:([A-Za-z0-9]++)__)?$)', $this->tokens[$i + 1][1], $matches)
             ) {
                 if ('LAMBDAARROW' === $matches[1]) {
                     array_splice($this->tokens, $i, 3, array(
@@ -220,7 +217,7 @@ class HackLang extends \PhpParser\Lexer\Emulative {
             // to allow nested generics
             } elseif (is_array($this->tokens[$i])
                 && ($this->tokens[$i][0] === T_SR)
-                && self::isProbableNestedGenericExpressionEnd($this->tokens, $i)) {
+                && $this->isProbableNestedGenericExpressionEnd($this->tokens, $i)) {
                 array_splice($this->tokens, $i, 1, array('>', '>'));
                 ++$c;
 
@@ -258,7 +255,7 @@ class HackLang extends \PhpParser\Lexer\Emulative {
                 --$c;
             }
         }
-        parent::postprocessTokens();
+        parent::emulateTokens();
     }
 
     public function restoreContentCallback(array $matches) {

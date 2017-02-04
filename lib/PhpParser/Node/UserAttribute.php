@@ -17,10 +17,12 @@ class UserAttribute extends \PhpParser\NodeAbstract
     /**
      * Constructs a name node.
      *
-     * @param string|array $parts      Parts of the name (or name as string)
-     * @param array        $attributes Additional attributes
+     * @param pNode\Name $name     Name of the user user attribute
+     * @param array      $values   Attribute values
+     * @param array      $attributes Additional attributes
      */
-    public function __construct(pNode\Name $name, array $values = array(),  array $attributes = array()) {
+    public function __construct(pNode\Name $name, array $values = array(), array $attributes = [])
+    {
         parent::__construct($attributes);
         $this->name = $name;
         $this->values = $values;

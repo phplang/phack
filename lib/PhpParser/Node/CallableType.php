@@ -8,13 +8,13 @@ class CallableType extends \PhpParser\NodeAbstract
 {
     use GetType;
 
-    /** @var type[] Callable parameters */
+    /** @var (SoftNullableType|GenericsType|CallableType)[] Callable parameters */
     public $parameters;
 
     /** @var bool Variadic */
     public $variadic;
 
-    /** @var ?type Retur type */
+    /** @var SoftNullableType|GenericsType|CallableType|null Retur type */
     public $returnType;
 
     /** @var bool Returns Reference */
@@ -23,13 +23,17 @@ class CallableType extends \PhpParser\NodeAbstract
     /**
      * Constructs a name node.
      *
-     * @param type[]       $parameters   Parameter Types
-     * @param ?type        $returnType   Return Type
+     * @param (SoftNullableType|GenericsType|CallableType)[]       $parameters   Parameter Types
+     * @param SoftNullableType|GenericsType|CallableType|null        $returnType   Return Type
      * @param bool         $returnRef    Returns Reference
      * @param array        $attributes   Additional attributes
      */
-    public function __construct(array $parameters, $returnType, $returnRef,
-                                array $attributes = array()) {
+    public function __construct(
+        array $parameters,
+        $returnType,
+        $returnRef,
+        array $attributes = []
+    ) {
         parent::__construct($attributes);
         /* Parameters overloaded with last element being true/false variadic flag */
         $this->variadic = array_pop($parameters);

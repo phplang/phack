@@ -4,7 +4,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use PhpLang\Phack;
 
-class PhackGenericsTest extends PHPUnit_Framework_TestCase {
+class PhackGenericsTest extends PHPUnit\Framework\TestCase {
     use Phack\Test\AssertTranspilesTrait;
 
     public function testClassGenerics() {
