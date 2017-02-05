@@ -1,7 +1,7 @@
 hack_generics_placeholder:
-	  hack_type_expr { $$ = $1; }
-	| hack_type_expr T_AS hack_type_expr { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::AS_TYPE, $3]; }
-	| hack_type_expr T_SUPER hack_type_expr { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::SUPER, $3]; }
+	  name { $$ = $1; }
+	| name T_AS name { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::AS_TYPE, $3]; }
+	| name T_SUPER name { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::SUPER, $3]; }
 ;
 
 hack_generics_placeholder_list:
