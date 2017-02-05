@@ -1,7 +1,5 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use PhpLang\Phack\Test;
 
 class PhackLambdaTest extends PHPUnit\Framework\TestCase {

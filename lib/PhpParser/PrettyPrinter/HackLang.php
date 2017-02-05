@@ -60,8 +60,11 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         }
 
         if ($type instanceof PhackNode\SoftNullableType) {
-            if ($type->type instanceof ParserNode\Name) {
-                return ($type->nullable ? '?' : '') . self::resolveTypename($type->type);
+            // @todo: make this a configurable option
+            if (false) {
+                if ($type->type instanceof ParserNode\Name) {
+                    return ($type->nullable ? '?' : '') . self::resolveTypename($type->type);
+                }
             }
             
             return '';
@@ -247,6 +250,34 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         if ($func instanceof PhackNode\Stmt\Function_) {
             $this->popGenerics($func->generics);
         }
+
+        $docblock_lines = [];
+
+        if ($func instanceof PhackNode\Stmt\Function_) {
+            if ($func->generics) {
+                foreach ($func->generics as $generic) {
+                    $docblock_lines[] = ' * @template ' . self::resolveTypenameForDocblock($generic);
+                }
+            }
+        }
+
+        if ($func->params) {
+            foreach ($func->params as $param) {
+                if ($param->type) {
+                    $docblock_lines[] = ' * @param ' . self::resolveTypenameForDocblock($param->type) .
+                        ' $' . $param->var->name;
+                }
+            }
+        }
+
+        if ($func->returnType) {
+            $docblock_lines[] = ' * @return ' . self::resolveTypenameForDocblock($func->returnType);
+        }
+
+        if ($docblock_lines) {
+            $ret = '/**' . PHP_EOL . implode(PHP_EOL, $docblock_lines) . PHP_EOL . ' */' . PHP_EOL . $ret;
+        }
+        
         return $ret;
     }
 
@@ -396,6 +427,34 @@ class HackLang extends \PhpParser\PrettyPrinter\Standard {
         if ($func instanceof PhackNode\Stmt\ClassMethod) {
             $this->popGenerics($func->generics);
         }
+
+        $docblock_lines = [];
+
+        if ($func instanceof PhackNode\Stmt\ClassMethod) {
+            if ($func->generics) {
+                foreach ($func->generics as $generic) {
+                    $docblock_lines[] = ' * @template ' . self::resolveTypenameForDocblock($generic);
+                }
+            }
+        }
+
+        if ($func->params) {
+            foreach ($func->params as $param) {
+                if ($param->type) {
+                    $docblock_lines[] = ' * @param ' . self::resolveTypenameForDocblock($param->type) .
+                        ' $' . $param->var->name;
+                }
+            }
+        }
+
+        if ($func->returnType) {
+            $docblock_lines[] = ' * @return ' . self::resolveTypenameForDocblock($func->returnType);
+        }
+
+        if ($docblock_lines) {
+            $ret = '/**' . PHP_EOL . implode(PHP_EOL, $docblock_lines) . PHP_EOL . ' */' . PHP_EOL . $ret;
+        }
+
         return $ret;
     }
 

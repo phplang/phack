@@ -1,7 +1,5 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use PhpLang\Phack;
 
 class PhackPipeOpTest extends PHPUnit\Framework\TestCase {
