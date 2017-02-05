@@ -1,10 +1,8 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use PhpLang\Phack;
 
-class PhackUserAttributesTest extends PHPUnit_Framework_TestCase {
+class PhackUserAttributesTest extends PHPUnit\Framework\TestCase {
     use Phack\Test\AssertTranspilesTrait;
 
     private function assertUAon($pattern, $cb) {

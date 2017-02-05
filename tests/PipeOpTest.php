@@ -1,10 +1,8 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use PhpLang\Phack;
 
-class PhackPipeOpTest extends PHPUnit_Framework_TestCase {
+class PhackPipeOpTest extends PHPUnit\Framework\TestCase {
     use Phack\Test\AssertTranspilesTrait;
 
     public function testBasicPipe() {

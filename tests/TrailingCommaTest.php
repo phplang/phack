@@ -1,10 +1,8 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use PhpLang\Phack\Test;
 
-class PhackTrailingCommaTest extends PHPUnit_Framework_TestCase {
+class PhackTrailingCommaTest extends PHPUnit\Framework\TestCase {
     use Test\AssertTranspilesTrait;
 
     public function testFunctionDecl() {

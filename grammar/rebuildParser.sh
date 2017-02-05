@@ -16,7 +16,10 @@ fi
 # There's probably a way to only replace the last %% with hack-extras.y,
 # but I can't figure out what it is.  Stick to brute force.
 $SED -e 's/%%//g' -e '/%tokens/a %%' -e '$r hack-extras.y' -e '$a %%' \
-	-e '/method_modifiers T_FUNCTION optional_ref identifier/ { N; d; }' \
+	-e '/method_modifiers T_FUNCTION optional_ref identifier/ { N; N; d; }' \
+	-e '/^type\:/ { N; N; N; N; N; d; }' \
+	-e '/^type_expr\:/ { N; N; N; N; d; }' \
+	-e 's/type_expr/hack_type_expr/' \
 	< ../vendor/nikic/php-parser/grammar/php7.y \
 	> hacklang.y
 

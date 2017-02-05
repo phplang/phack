@@ -1,10 +1,8 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use PhpLang\Phack;
 
-class PhackEnumTest extends PHPUnit_Framework_TestCase {
+class PhackEnumTest extends PHPUnit\Framework\TestCase {
     public function testEnum() {
        Phack\includeFile(__DIR__.'/MyEnum.php');
        $this->assertTrue(class_exists(Phack\Test\MyEmptyEnum::class));

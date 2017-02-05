@@ -1,7 +1,7 @@
 hack_generics_placeholder:
-	  type { $$ = $1; }
-	| type T_AS type { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::AS, $3]; }
-	| type T_SUPER type { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::SUPER, $3]; }
+	  name { $$ = $1; }
+	| name T_AS name { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::AS_TYPE, $3]; }
+	| name T_SUPER name { $$ = PhackNode\GenericsConstraint[$1, PhackNode\GenericsConstraint::SUPER, $3]; }
 ;
 
 hack_generics_placeholder_list:
@@ -19,8 +19,8 @@ hack_optional_generics_placeholder_list:
 ;
 
 hack_type_list:
-	  type { $$ = init($1); }
-	| hack_type_list ',' type { $$ = push($1, $3); }
+	  hack_type_expr { $$ = init($1); }
+	| hack_type_list ',' hack_type_expr { $$ = push($1, $3); }
 ;
 
 hack_enum:
@@ -53,7 +53,7 @@ hack_user_attributes_list:
 ;
 
 hack_lambda_arguments:
-	  T_VARIABLE { $$ = init(Node\Param[parseVar($1), null, null, false, false]); }
+	  plain_variable { $$ = init(Node\Param[$1, null, null, false, false]); }
 	| T_LAMBDA_OP parameter_list T_LAMBDA_CP { $$ = $2; }
 ;
 
@@ -63,8 +63,8 @@ hack_lambda:
 ;
 
 hack_non_empty_parameter_type_list:
-	  type { $$ = init($1); }
-	| hack_non_empty_parameter_type_list ',' type { $$ = push($1, $3); }
+	  hack_type_expr { $$ = init($1); }
+	| hack_non_empty_parameter_type_list ',' hack_type_expr { $$ = push($1, $3); }
 ;
 
 hack_parameter_type_list:
@@ -87,9 +87,9 @@ hack_non_empty_parameter_list:
 
 hack_parameter:
 	  hack_optional_visibility_modifier optional_param_type optional_ref optional_ellipsis
-	  T_VARIABLE { $$ = PhackNode\Param[parseVar($5), null, $2, $3, $4, $1]; }
+	  plain_variable { $$ = PhackNode\Param[$5, null, $2, $3, $4, $1]; }
 	| hack_optional_visibility_modifier optional_param_type optional_ref optional_ellipsis
-	  T_VARIABLE '=' expr { $$ = PhackNode\Param[parseVar($5), $7, $2, $3, $4, $1]; }
+	  plain_variable '=' expr { $$ = PhackNode\Param[$5, $7, $2, $3, $4, $1]; }
 ;
 
 hack_optional_visibility_modifier:
@@ -100,8 +100,8 @@ hack_optional_visibility_modifier:
 ;
 
 property_declaration:
-	  type T_VARIABLE { $$ = PhackStmt\PropertyProperty[parseVar($2), null, $1]; }
-	| type T_VARIABLE '=' expr { $$ = PhackStmt\PropertyProperty[parseVar($2), $4, $1]; }
+	  hack_type_expr T_VARIABLE { $$ = PhackStmt\PropertyProperty[parseVar($2), null, $1]; }
+	| hack_type_expr T_VARIABLE '=' expr { $$ = PhackStmt\PropertyProperty[parseVar($2), $4, $1]; }
 ;
 
 parameter_list:
@@ -112,10 +112,13 @@ argument_list:
 	  '(' non_empty_argument_list ',' ')' { $$ = $2; }
 ;
 
-type:
-	  '?' type { $$ = PhackNode\SoftNullableType[$2, false, true]; }
-	| '@' type { $$ = PhackNode\SoftNullableType[$2, true, false]; }
+hack_type_expr:
+      name { $$ = $1; }
+	| '?' hack_type_expr { $$ = PhackNode\SoftNullableType[$2, false, true]; }
+	| '@' hack_type_expr { $$ = PhackNode\SoftNullableType[$2, true, false]; }
 	| name '<' hack_type_list '>' { $$ = PhackNode\GenericsType[$1, $3]; }
+	| T_ARRAY { $$ = maybeMakeIdent('array'); }
+    | T_CALLABLE { $$ = maybeMakeIdent('callable'); }
 	| T_ARRAY '<' hack_type_list '>' { $$ = PhackNode\GenericsType['array', $3]; }
 	| '(' T_FUNCTION optional_ref '(' hack_parameter_type_list ')' optional_return_type ')'
 	    { $$ = PhackNode\CallableType[$5, $7, $3]; }

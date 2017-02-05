@@ -12,17 +12,24 @@ class Param extends \PhpParser\Node\Param {
     /**
      * Constructs a parameter node.
      *
-     * @param string           $name       Name
-     * @param null|Expr        $default    Default value
+     * @param pExpr\Variable   $var        Parameter variable
+     * @param null|pExpr       $default    Default value
      * @param null|string|Name $type       Typehint
      * @param bool             $byRef      Whether is passed by reference
      * @param bool             $variadic   Whether this is a variadic argument
      * @param int              $visibility For constructor arg promotion
      * @param array            $attributes Additional attributes
      */
-    public function __construct($name, pExpr $default = null, $type = null, $byRef = false,
-                                $variadic = false, $visibility = null, array $attributes = array()) {
-        parent::__construct($name, $default, $type, $byRef, $variadic, $attributes);
+    public function __construct(
+        pExpr\Variable $var,
+        pExpr $default = null,
+        $type = null,
+        $byRef = false,
+        $variadic = false,
+        $visibility = null,
+        array $attributes = []
+    ) {
+        parent::__construct($var, $default, $type, $byRef, $variadic, $attributes);
         $this->visibility = $visibility;
     }
 

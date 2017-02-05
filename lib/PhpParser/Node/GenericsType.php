@@ -17,11 +17,11 @@ class GenericsType extends \PhpParser\NodeAbstract
     /**
      * Constructs a name node.
      *
-     * @param string|Name  $basename   Base name of Generics Type
-     * @param string[]|Name[]|GenericsTypeAlias[] Generics Subtypes
-     * @param array        $attributes Additional attributes
+     * @param string|Name                       $basetype   Base name of Generics Type
+     * @param (string|Name|GenericsTypeAlias)[] $subtypes   Generics Subtypes
+     * @param array                             $attributes Additional attributes
      */
-    public function __construct($basetype, array $subtypes = array(),  array $attributes = array()) {
+    public function __construct($basetype, array $subtypes = array(), array $attributes = array()) {
         parent::__construct($attributes);
         $this->basetype = $basetype;
         $this->subtypes = $subtypes;

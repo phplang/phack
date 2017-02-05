@@ -1,10 +1,8 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use PhpLang\Phack;
 
-class PhackAutoloadTest extends PHPUnit_Framework_TestCase {
+class PhackAutoloadTest extends PHPUnit\Framework\TestCase {
     public function testParseHackLang() {
         Phack\ClassLoader::hijack();
         $t = new Phack\Test\Value(42);

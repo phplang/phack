@@ -1,10 +1,8 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use PhpLang\Phack\Test;
 
-class PhackShiftTest extends PHPUnit_Framework_TestCase {
+class PhackShiftTest extends PHPUnit\Framework\TestCase {
     use Test\AssertTranspilesTrait;
 
     public function testShift() {

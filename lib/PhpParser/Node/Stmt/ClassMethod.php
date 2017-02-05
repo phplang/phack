@@ -24,10 +24,9 @@ class ClassMethod extends \PhpParser\Node\Stmt\ClassMethod
      *                                'stmts'      => array()        : Statements
      *                                'generics'   => array()        : Typenames
      *                                'user_attributes' => UserAttribites[]: User Attributes
-     * @param array       $userAttributes User Attributes
      * @param array       $attributes Additional attributes
      */
-    public function __construct($name, array $subNodes = array(), array $attributes = array()) {
+    public function __construct($name, array $subNodes = [], array $attributes = []) {
         parent::__construct($name, $subNodes, $attributes);
         $this->generics = isset($subNodes['generics']) ? $subNodes['generics'] : array();
         $this->user_attributes = isset($subNodes['user_attributes'])

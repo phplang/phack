@@ -14,9 +14,9 @@ class Pipe extends pNode\Expr {
     /**
      * Constructs a Pipe node.
      *
-     * @param Expr  $lhs        Datasource expression
-     * @param Expr  $rhs        Consumer expression
-     * @param array $attributes Additional attributes
+     * @param pNode\Expr  $lhs        Datasource expression
+     * @param pNode\Expr  $rhs        Consumer expression
+     * @param array       $attributes Additional attributes
      */
     public function __construct(pNode\Expr $lhs, pNode\Expr $rhs, array $attributes = array()) {
         parent::__construct($attributes);
